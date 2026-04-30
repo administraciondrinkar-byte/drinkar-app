@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Business Suite V4.1 - Local</title>
+    <title>DrinKar Business Suite V4.1 - Nube Realtime</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
     <style>
         :root { --primary: #630d16; --bg: #0a0a0a; --card-bg: #151515; --text: #f8f9fa; --text-muted: #a0a0a0; --accent: #27ae60; --warning: #e67e22; --info: #2980b9; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -70,12 +74,12 @@
 
 <div id="loading">
     <div class="spinner"></div>
-    <h3 id="load-text">Cargando DrinKar Local...</h3>
+    <h3 id="load-text">Conectando a Firebase...</h3>
 </div>
 
 <div class="header">
     <h1 style="letter-spacing: 4px;">Drin<span style="color:var(--primary)">Kar</span></h1>
-    <p style="font-size: 9px; color: var(--text-muted); margin-top: 5px;">ERP & FISCAL SUITE V4.1 (MODO LOCAL)</p>
+    <p style="font-size: 9px; color: var(--text-muted); margin-top: 5px;">ERP & FISCAL SUITE V4.1 (FIREBASE CLOUD)</p>
 </div>
 
 <div class="nav-bar">
@@ -125,7 +129,6 @@
     <div id="view-buy" class="view hidden">
         <div class="card">
             <h3>Ingreso de Mercancía (Inventario)</h3>
-            <p style="font-size:11px; color:var(--text-muted); margin-bottom:15px;">Usa esta sección solo para comprar productos que vas a revender.</p>
             <div class="field-group"><label>Seleccionar Producto</label><select id="buy-prod"></select></div>
             <div class="flex-row">
                 <div class="field-group"><label>Cantidad</label><input type="number" id="buy-qty"></div>
@@ -142,7 +145,6 @@
     <div id="view-exp" class="view hidden">
         <div class="card">
             <h3>Registro de Gastos y Deducciones</h3>
-            <p style="font-size:11px; color:var(--text-muted); margin-bottom:15px;">Registra facturas de operación (Luz, Renta, Gasolina, Publicidad, etc.) para cálculo de IVA a favor.</p>
             <div class="field-group">
                 <label>Concepto del Gasto</label>
                 <input type="text" id="exp-desc" placeholder="Ej. Pago de CFE / Publicidad Facebook">
@@ -234,12 +236,10 @@
                 <div class="tax-card">
                     <label style="color:var(--text-muted)">IVA Cobrado (Ventas)</label>
                     <div class="tax-val" style="color:#c0392b" id="rep-iva-cobrado">$0.00</div>
-                    <small style="font-size:9px;">Lo que debes al SAT</small>
                 </div>
                 <div class="tax-card">
-                    <label style="color:var(--text-muted)">IVA Pagado (Compras/Gastos)</label>
+                    <label style="color:var(--text-muted)">IVA Pagado (Gastos)</label>
                     <div class="tax-val" style="color:var(--accent)" id="rep-iva-pagado">$0.00</div>
-                    <small style="font-size:9px;">Lo que tienes a favor</small>
                 </div>
             </div>
             <div class="tax-card" id="rep-iva-status-card" style="background:#222;">
@@ -254,33 +254,67 @@
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
-                        <tr><th>FECHA</th><th>TIPO</th><th>CONCEPTO</th><th>SUBTOTAL</th><th>IVA</th><th>TOTAL</th><th>UTILIDAD</th></tr>
+                        <tr><th>FECHA</th><th>TIPO</th><th>CONCEPTO</th><th>TOTAL</th><th>UTILIDAD</th></tr>
                     </thead>
                     <tbody id="rep-list"></tbody>
                 </table>
             </div>
-            <button class="btn" style="background:#444; color:white; font-size:10px; margin-top:15px;" onclick="clearLocalData()">⚠️ Borrar Toda La Base de Datos</button>
         </div>
     </div>
 
 </div>
 
 <script>
-    // --- SISTEMA LOCALSTORAGE ---
+    // =========================================================
+    // ⚠️ ATENCIÓN: PEGA TU CONFIGURACIÓN DE FIREBASE AQUÍ ABAJO
+    // =========================================================
+    const firebaseConfig = {
+  	apiKey: "AIzaSyC2OpCZLRUbZJB16pkglHxOK2YiVzqffKQ",
+  	authDomain: "drinkar-cc5ab.firebaseapp.com",
+  	databaseURL: "https://drinkar-cc5ab-default-rtdb.firebaseio.com",
+  	projectId: "drinkar-cc5ab",
+  	storageBucket: "drinkar-cc5ab.firebasestorage.app",
+  	messagingSenderId: "546531961373",
+  	appId: "1:546531961373:web:4d88f6bceb506d640df4f4",
+  	measurementId: "G-PT6RL6GLZR"
+	};
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    // =========================================================
+
     const defaultDb = { inv: [], mov: [], set: { m_pub: 15, m_com: 13.5, m_6: 3, m_12: 5, m_24: 8, primary: '#630d16', bg: '#0a0a0a' } };
-    
-    // Le cambié el nombre a 'drinkar_db_v4' para que no choque con la versión vieja que probaste
-    let db = JSON.parse(localStorage.getItem('drinkar_db_v4')) || defaultDb;
+    let db = defaultDb;
     let cart = [];
+    let currentView = 'calc'; // Para saber qué pantalla recargar
 
-    // Esta función reemplaza a syncToCloud()
-    function saveToLocal() {
-        localStorage.setItem('drinkar_db_v4', JSON.stringify(db));
-    }
-
-    function initLocal() {
+    // --- ESCUCHADOR EN TIEMPO REAL (FIREBASE) ---
+    database.ref('drinkar_data').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            // Asegurarnos de que existan los arrays por si Firebase los borra al estar vacíos
+            db = {
+                inv: data.inv || [],
+                mov: data.mov || [],
+                set: data.set || defaultDb.set
+            };
+        } else {
+            db = defaultDb;
+        }
+        
         initTheme();
         document.getElementById('loading').style.display = 'none';
+
+        // Actualizar la pantalla que esté abierta en ese momento para reflejar cambios de otros dispositivos
+        if(currentView === 'inv') renderInv();
+        if(currentView === 'buy' || currentView === 'pos') populateSelect(currentView + '-prod');
+        if(currentView === 'rep') renderReports();
+    });
+
+    // Función para guardar en la nube
+    function saveToCloud() {
+        // En Firebase, `set` sobreescribe toda la ruta con la nueva información
+        database.ref('drinkar_data').set(db);
     }
 
     // --- THEME ---
@@ -291,6 +325,7 @@
     }
 
     function showView(viewId, el) {
+        currentView = viewId;
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.remove('hidden');
@@ -303,7 +338,7 @@
     }
 
     function populateSelect(id) {
-        document.getElementById(id).innerHTML = db.inv.map(p => `<option value="${p.id}">${p.nom}</option>`).join('');
+        document.getElementById(id).innerHTML = db.inv.map(p => `<option value="${p.id}">${p.nom} (Stock: ${p.stock})</option>`).join('');
     }
 
     // --- CALCULADORA ---
@@ -337,8 +372,10 @@
         let c = parseFloat(document.getElementById('inv-cost').value);
         let q = parseInt(document.getElementById('inv-qty').value) || 0;
         if(!n || isNaN(c)) return alert("Datos faltantes");
+        
         db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
-        renderInv(); saveToLocal();
+        saveToCloud(); // ¡Se guarda en Firebase automáticamente!
+        
         document.getElementById('inv-nom').value = "";
         document.getElementById('inv-cost').value = "";
         document.getElementById('inv-qty').value = "";
@@ -364,7 +401,7 @@
     }
 
     function deleteInv(idx) {
-        if(confirm("¿Borrar producto?")) { db.inv.splice(idx, 1); renderInv(); saveToLocal(); }
+        if(confirm("¿Borrar producto?")) { db.inv.splice(idx, 1); saveToCloud(); }
     }
 
     // --- COMPRAS DE INVENTARIO ---
@@ -386,7 +423,8 @@
         if(cost) p.cost = cost;
 
         db.mov.push({ fecha: new Date().toLocaleDateString(), tipo: 'COMPRA', desc: 'Surtido: ' + p.nom, sub: subtotal, iva: iva, total: subtotal + iva, ganancia: 0 });
-        saveToLocal(); alert("Compra registrada.");
+        saveToCloud();
+        alert("Compra registrada en la nube.");
         document.getElementById('buy-qty').value = "";
         document.getElementById('buy-cost').value = "";
     }
@@ -404,9 +442,10 @@
 
         db.mov.push({ fecha: new Date().toLocaleDateString(), tipo: 'GASTO', desc: desc, sub: sub, iva: iva, total: sub + iva, ganancia: 0 });
         
+        saveToCloud();
         document.getElementById('exp-desc').value = "";
         document.getElementById('exp-sub').value = "";
-        saveToLocal(); alert("Gasto registrado exitosamente.");
+        alert("Gasto registrado en la nube.");
     }
 
     // --- VENTA (POS) ---
@@ -477,7 +516,7 @@
             tItems += `<tr><td>${item.qty}</td><td>${item.nom}</td><td align="right">$${item.unit.toFixed(2)}</td><td align="right">$${item.sub.toFixed(2)}</td></tr>`;
         });
 
-        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo: 'VENTA', desc: 'Venta', sub: tSub, iva: tIva, total: tSub + tIva, ganancia: tGanancia });
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo: 'VENTA', desc: 'Venta Caja', sub: tSub, iva: tIva, total: tSub + tIva, ganancia: tGanancia });
         
         document.getElementById('ticket-items').innerHTML = tItems;
         document.getElementById('t-sub').innerText = tSub.toFixed(2);
@@ -485,7 +524,7 @@
         document.getElementById('t-total').innerText = (tSub+tIva).toFixed(2);
         document.getElementById('t-date').innerText = new Date().toLocaleString();
 
-        saveToLocal();
+        saveToCloud(); // Sincroniza la venta y el descuento de inventario
         document.getElementById('ticket-preview').classList.remove('hidden');
         document.getElementById('cart-container').classList.add('hidden');
         cart = [];
@@ -513,8 +552,6 @@
                 <td>${m.fecha}</td>
                 <td><span class="badge" style="background:${badgeColor}">${m.tipo}</span></td>
                 <td>${m.desc}</td>
-                <td>$${m.sub.toFixed(2)}</td>
-                <td>$${m.iva.toFixed(2)}</td>
                 <td>$${m.total.toFixed(2)}</td>
                 <td style="color:${m.ganancia > 0 ? 'var(--accent)' : '#555'}">$${m.ganancia.toFixed(2)}</td>
             </tr>`;
@@ -524,7 +561,6 @@
         document.getElementById('rep-g').innerText = `$${g.toFixed(2)}`;
         document.getElementById('rep-list').innerHTML = html;
 
-        // Calculo de IVA
         document.getElementById('rep-iva-cobrado').innerText = `$${ivaCobrado.toFixed(2)}`;
         document.getElementById('rep-iva-pagado').innerText = `$${ivaPagado.toFixed(2)}`;
         
@@ -548,16 +584,6 @@
             msg.innerText = "Balance en cero";
         }
     }
-
-    function clearLocalData() {
-        if(confirm("⚠️ ¿Estás seguro de borrar TODA la base de datos local? Esto no se puede deshacer.")) {
-            localStorage.removeItem('drinkar_db_v4');
-            location.reload();
-        }
-    }
-
-    // Iniciar app al cargar la ventana
-    window.onload = initLocal;
 </script>
 
 </body>
