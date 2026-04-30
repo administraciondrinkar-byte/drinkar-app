@@ -3,208 +3,562 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Business Suite V5 - Local</title>
+    <title>DrinKar Business Suite V4.1 - Local</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --primary: #630d16; --bg: #0a0a0a; --card-bg: #151515; --text: #f8f9fa; --text-muted: #a0a0a0; --accent: #27ae60; --warning: #e67e22; --info: #2980b9; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: all 0.3s ease; }
         h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .header { background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%); padding: 30px 20px; text-align: center; border-bottom: 2px solid var(--primary); }
-        .nav-bar { background: var(--card-bg); display: flex; justify-content: space-between; padding: 10px 15px; position: sticky; top: 0; z-index: 1000; overflow-x: auto; gap: 5px; }
-        .nav-item { color: var(--text-muted); text-decoration: none; font-size: 9px; text-align: center; padding: 5px 10px; flex: 1; }
+        .nav-bar { background: var(--card-bg); display: flex; justify-content: space-between; padding: 10px 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.5); overflow-x: auto; white-space: nowrap; gap: 5px; }
+        .nav-item { color: var(--text-muted); text-decoration: none; font-size: 9px; text-align: center; padding: 5px 10px; transition: 0.3s; flex: 1; }
         .nav-item.active { color: var(--text); font-weight: bold; }
-        .nav-item.active .nav-icon { background: var(--primary); color: white; }
-        .nav-icon { font-size: 18px; display: block; margin-bottom: 5px; background: #222; padding: 8px; border-radius: 10px; }
+        .nav-item.active .nav-icon { background: var(--primary); color: white; transform: translateY(-3px); }
+        .nav-icon { font-size: 18px; display: block; margin-bottom: 5px; background: #222; padding: 8px; border-radius: 10px; transition: 0.3s; }
+
         .container { padding: 20px; max-width: 900px; margin: auto; }
         .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); }
-        input, select { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 10px; color: white; font-size: 15px; outline: none; margin-bottom: 10px; }
+
+        .field-group { margin-bottom: 15px; }
         label { display: block; font-size: 11px; color: var(--primary); margin-bottom: 5px; font-weight: 700; text-transform: uppercase; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; text-transform: uppercase; margin-top:10px; }
+        input, select { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 10px; color: white; font-size: 15px; outline: none; }
+        
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; text-transform: uppercase; margin-top:10px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-danger { background: #c0392b; color: white; padding: 8px 12px; font-size: 11px; width: auto; margin:0; }
         .btn-success { background: var(--accent); color: white; }
-        .btn-danger { background: #c0392b; color: white; font-size: 10px; width: auto; padding: 5px 10px; }
-        .price-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+        .btn-info { background: var(--info); color: white; }
+
+        .price-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
         .price-tag { background: #1a1a1a; padding: 10px; border-radius: 8px; border-left: 3px solid var(--primary); }
         .price-tag span { display: block; font-size: 9px; color: var(--text-muted); }
-        table { width: 100%; border-collapse: collapse; background: #111; font-size: 12px; }
-        th { text-align: left; padding: 10px; border-bottom: 2px solid var(--primary); color: var(--primary); }
-        td { padding: 10px; border-bottom: 1px solid #222; }
+        .price-tag b { font-size: 15px; color: var(--text); }
+
+        .cart-item { background: #1a1a1a; border-radius: 10px; padding: 15px; margin-bottom: 10px; position: relative; border: 1px solid #333; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #111; border-radius: 10px; overflow: hidden; }
+        th { text-align: left; font-size: 10px; color: var(--primary); padding: 12px; border-bottom: 2px solid var(--primary); background: #000; }
+        td { padding: 12px; border-bottom: 1px solid #222; font-size: 12px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
+        
         .hidden { display: none; }
-        #ticket-wrap { background: white; color: black; padding: 20px; width: 320px; margin: auto; font-family: monospace; }
+        #ticket-wrap { background: white; color: black; padding: 30px; width: 380px; margin: 20px auto; font-family: 'Courier New', Courier, monospace; line-height: 1.2; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        .ticket-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
+        .ticket-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+        .ticket-table th { color: black; border-bottom: 1px dashed black; background: none; padding: 5px 0; }
+        .ticket-table td { color: black; border: none; padding: 5px 0; font-size: 12px; }
+
+        .flex-row { display: flex; gap: 10px; }
+        .flex-row > div { flex: 1; }
+        .chk-group { display: flex; align-items: center; gap: 10px; background: #222; padding: 10px; border-radius: 10px; }
+        .chk-group input { width: auto; margin: 0; }
+
+        /* Estilos Reportes Fiscales */
+        .tax-card { background: #1a1a1a; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #333; }
+        .tax-val { font-size: 24px; font-weight: bold; margin: 5px 0; }
     </style>
 </head>
 <body>
 
-<div id="loading"><div class="spinner"></div><p>Cargando DrinKar...</p></div>
+<div id="loading">
+    <div class="spinner"></div>
+    <h3 id="load-text">Cargando DrinKar Local...</h3>
+</div>
 
 <div class="header">
-    <h1>Drin<span style="color:var(--primary)">Kar</span></h1>
-    <p style="font-size: 10px; color: var(--text-muted);">SISTEMA LOCAL INDEPENDIENTE</p>
+    <h1 style="letter-spacing: 4px;">Drin<span style="color:var(--primary)">Kar</span></h1>
+    <p style="font-size: 9px; color: var(--text-muted); margin-top: 5px;">ERP & FISCAL SUITE V4.1 (MODO LOCAL)</p>
 </div>
 
 <div class="nav-bar">
     <a href="#" class="nav-item active" onclick="showView('calc', this)"><span class="nav-icon">⚖️</span>CALC</a>
     <a href="#" class="nav-item" onclick="showView('inv', this)"><span class="nav-icon">📦</span>INV</a>
+    <a href="#" class="nav-item" onclick="showView('buy', this)"><span class="nav-icon">📥</span>COMPRA</a>
     <a href="#" class="nav-item" onclick="showView('pos', this)"><span class="nav-icon">🛒</span>VENTA</a>
+    <a href="#" class="nav-item" onclick="showView('exp', this)"><span class="nav-icon">🧾</span>GASTOS</a>
     <a href="#" class="nav-item" onclick="showView('rep', this)"><span class="nav-icon">📈</span>REPORTE</a>
 </div>
 
 <div class="container">
+
     <div id="view-calc" class="view">
         <div class="card">
             <h3>Calculadora de Precios</h3>
-            <label>Costo Neto Producto</label>
-            <input type="number" id="calc-in" oninput="runCalc()">
-            <div id="calc-out" class="price-grid"></div>
+            <div class="field-group">
+                <label>Precio Neto Proveedor (Costo)</label>
+                <input type="number" id="calc-in" placeholder="0.00" oninput="runLiveCalc()">
+            </div>
+            <div id="calc-out"></div>
+        </div>
+        <div class="card">
+            <h3>Simulador de Facturación</h3>
+            <div class="flex-row">
+                <div class="field-group"><label>Monto a Facturar</label><input type="number" id="tax-monto" placeholder="0.00"></div>
+                <div class="field-group"><label>% IVA</label><input type="number" id="tax-iva-p" value="16"></div>
+            </div>
+            <button class="btn btn-outline" onclick="calcTaxSim()">Calcular Impuestos</button>
+            <div id="tax-res" style="margin-top:15px;"></div>
         </div>
     </div>
 
     <div id="view-inv" class="view hidden">
         <div class="card">
-            <h3>Nuevo Producto</h3>
-            <input type="text" id="inv-nom" placeholder="Nombre del producto">
-            <input type="number" id="inv-cost" placeholder="Costo">
-            <input type="number" id="inv-qty" placeholder="Stock inicial">
-            <button class="btn btn-primary" onclick="addInv()">Guardar Producto</button>
+            <h3>Registro de Inventario</h3>
+            <div class="field-group"><label>Nombre del Producto</label><input type="text" id="inv-nom" placeholder="Ej. Whisky 750ml"></div>
+            <div class="flex-row">
+                <div class="field-group"><label>Costo Unitario</label><input type="number" id="inv-cost"></div>
+                <div class="field-group"><label>Stock Inicial</label><input type="number" id="inv-qty"></div>
+            </div>
+            <button class="btn btn-primary" onclick="addToInv()">Guardar Producto</button>
         </div>
         <div id="inv-render"></div>
     </div>
 
+    <div id="view-buy" class="view hidden">
+        <div class="card">
+            <h3>Ingreso de Mercancía (Inventario)</h3>
+            <p style="font-size:11px; color:var(--text-muted); margin-bottom:15px;">Usa esta sección solo para comprar productos que vas a revender.</p>
+            <div class="field-group"><label>Seleccionar Producto</label><select id="buy-prod"></select></div>
+            <div class="flex-row">
+                <div class="field-group"><label>Cantidad</label><input type="number" id="buy-qty"></div>
+                <div class="field-group"><label>Costo Actualizado</label><input type="number" id="buy-cost" placeholder="Opcional"></div>
+            </div>
+            <div class="flex-row">
+                <div class="chk-group"><input type="checkbox" id="buy-fact"> <label style="margin:0">Facturado</label></div>
+                <div class="field-group"><label>% IVA Compra</label><input type="number" id="buy-iva-p" value="16"></div>
+            </div>
+            <button class="btn btn-primary" onclick="executePurchase()">Registrar Compra</button>
+        </div>
+    </div>
+
+    <div id="view-exp" class="view hidden">
+        <div class="card">
+            <h3>Registro de Gastos y Deducciones</h3>
+            <p style="font-size:11px; color:var(--text-muted); margin-bottom:15px;">Registra facturas de operación (Luz, Renta, Gasolina, Publicidad, etc.) para cálculo de IVA a favor.</p>
+            <div class="field-group">
+                <label>Concepto del Gasto</label>
+                <input type="text" id="exp-desc" placeholder="Ej. Pago de CFE / Publicidad Facebook">
+            </div>
+            <div class="flex-row">
+                <div class="field-group">
+                    <label>Subtotal (Sin IVA)</label>
+                    <input type="number" id="exp-sub" placeholder="0.00">
+                </div>
+            </div>
+            <div class="flex-row">
+                <div class="chk-group"><input type="checkbox" id="exp-fact" checked> <label style="margin:0">Es Deducible (Facturado)</label></div>
+                <div class="field-group"><label>% IVA</label><input type="number" id="exp-iva-p" value="16"></div>
+            </div>
+            <button class="btn btn-info" onclick="addExpense()">Registrar Gasto Deducible</button>
+        </div>
+    </div>
+
     <div id="view-pos" class="view hidden">
         <div class="card">
-            <h3>Punto de Venta</h3>
-            <label>Producto</label>
-            <select id="pos-prod"></select>
-            <label>Cantidad</label>
-            <input type="number" id="pos-qty" value="1">
-            <button class="btn btn-primary" onclick="addToCart()">+ Agregar</button>
+            <h3>Punto de Venta DrinKar</h3>
+            <div class="field-group"><label>Producto</label><select id="pos-prod" onchange="updatePosPreview()"></select></div>
+            <div class="field-group"><label>Cantidad</label><input type="number" id="pos-qty" value="1" oninput="updatePosPreview()"></div>
+            
+            <div style="border: 1px solid #333; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <label style="color:var(--accent)">Elegir forma de venta:</label>
+                <div class="flex-row">
+                    <div class="field-group"><label>Precio de Venta</label><input type="number" id="pos-price-manual" placeholder="Ej. 500" oninput="updatePosPreview('price')"></div>
+                    <div class="field-group"><label>Margen %</label><input type="number" id="pos-margin" placeholder="Ej. 15" oninput="updatePosPreview('margin')"></div>
+                </div>
+                <p id="pos-gain-preview" style="font-size:11px; text-align:center; margin:0; color:var(--text-muted)"></p>
+            </div>
+
+            <div class="flex-row">
+                <div class="chk-group"><input type="checkbox" id="pos-fact"> <label style="margin:0">Venta Facturada</label></div>
+                <div class="field-group"><label>% IVA</label><input type="number" id="pos-iva-p" value="16"></div>
+            </div>
+            <button class="btn btn-outline" onclick="addToCart()">+ Agregar al Carrito</button>
         </div>
-        <div class="card" id="cart-card">
-            <h3>Carrito</h3>
+
+        <div class="card" id="cart-container">
+            <h3>Carrito Actual</h3>
             <div id="cart-list"></div>
-            <h2 id="cart-total">$0.00</h2>
-            <button class="btn btn-success" onclick="sell()">Finalizar Venta</button>
+            <div style="text-align:right; border-top:1px solid #333; padding-top:15px;">
+                <p style="font-size:12px; margin:0;">SUBTOTAL: <span id="cart-sub">0.00</span></p>
+                <p style="font-size:12px; margin:0;">IVA: <span id="cart-iva">0.00</span></p>
+                <h2 style="color:var(--primary)" id="cart-total">$0.00</h2>
+            </div>
+            <button class="btn btn-success" onclick="finalizeSale()">Finalizar Venta</button>
+        </div>
+
+        <div id="ticket-preview" class="hidden">
+            <div id="ticket-wrap">
+                <div class="ticket-header">
+                    <h2 style="margin:0; color:black">DrinKar</h2>
+                    <small>COMPROBANTE DE VENTA</small><br>
+                    <small id="t-date"></small>
+                </div>
+                <table class="ticket-table">
+                    <thead>
+                        <tr><th align="left">CANT</th><th align="left">CONCEPTO</th><th align="right">UNIT</th><th align="right">TOTAL</th></tr>
+                    </thead>
+                    <tbody id="ticket-items"></tbody>
+                </table>
+                <div style="border-top: 1px solid black; margin-top:10px; padding-top:10px; text-align:right;">
+                    <p style="margin:2px 0">SUBTOTAL: <span id="t-sub"></span></p>
+                    <p style="margin:2px 0">IVA: <span id="t-iva"></span></p>
+                    <h3 style="margin:2px 0">TOTAL: <span id="t-total"></span></h3>
+                </div>
+                <center style="margin-top:20px; font-size:10px;">¡Gracias por su compra!<br>DrinKar Suite Enterprise</center>
+            </div>
+            <button class="btn btn-secondary" onclick="downloadTicket()">Descargar Ticket Imagen</button>
+            <button class="btn btn-outline" onclick="showView('pos', this)">Nueva Venta</button>
         </div>
     </div>
 
     <div id="view-rep" class="view hidden">
         <div class="card">
-            <h3>Resumen</h3>
-            <h1 id="rep-v">$0</h1>
-            <label>Ventas Totales</label>
+            <h3>Rendimiento Comercial</h3>
+            <div style="display:flex; justify-content:space-around; text-align:center;">
+                <div><label>Ventas Netas</label><h2 id="rep-v">$0</h2></div>
+                <div><label>Utilidad Bruta</label><h2 id="rep-g" style="color:var(--accent)">$0</h2></div>
+            </div>
         </div>
-        <div class="card" style="overflow-x:auto;">
-            <table>
-                <thead><tr><th>Fecha</th><th>Concepto</th><th>Total</th></tr></thead>
-                <tbody id="rep-list"></tbody>
-            </table>
-            <button class="btn" style="background:#444; color:white; font-size:10px;" onclick="clearData()">⚠️ Borrar Todo</button>
+
+        <div class="card" style="border-color: var(--info);">
+            <h3>Balance Fiscal (Control de IVA)</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 15px;">
+                <div class="tax-card">
+                    <label style="color:var(--text-muted)">IVA Cobrado (Ventas)</label>
+                    <div class="tax-val" style="color:#c0392b" id="rep-iva-cobrado">$0.00</div>
+                    <small style="font-size:9px;">Lo que debes al SAT</small>
+                </div>
+                <div class="tax-card">
+                    <label style="color:var(--text-muted)">IVA Pagado (Compras/Gastos)</label>
+                    <div class="tax-val" style="color:var(--accent)" id="rep-iva-pagado">$0.00</div>
+                    <small style="font-size:9px;">Lo que tienes a favor</small>
+                </div>
+            </div>
+            <div class="tax-card" id="rep-iva-status-card" style="background:#222;">
+                <label>BALANCE FINAL DE IVA</label>
+                <div class="tax-val" id="rep-iva-balance">$0.00</div>
+                <p id="rep-iva-msg" style="margin:0; font-size:12px;"></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Historial de Movimientos</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr><th>FECHA</th><th>TIPO</th><th>CONCEPTO</th><th>SUBTOTAL</th><th>IVA</th><th>TOTAL</th><th>UTILIDAD</th></tr>
+                    </thead>
+                    <tbody id="rep-list"></tbody>
+                </table>
+            </div>
+            <button class="btn" style="background:#444; color:white; font-size:10px; margin-top:15px;" onclick="clearLocalData()">⚠️ Borrar Toda La Base de Datos</button>
         </div>
     </div>
+
 </div>
 
 <script>
-    // SISTEMA DE ALMACENAMIENTO LOCAL (Sin Google)
-    let db = JSON.parse(localStorage.getItem('drinkar_db')) || { inv: [], mov: [] };
+    // --- SISTEMA LOCALSTORAGE ---
+    const defaultDb = { inv: [], mov: [], set: { m_pub: 15, m_com: 13.5, m_6: 3, m_12: 5, m_24: 8, primary: '#630d16', bg: '#0a0a0a' } };
+    
+    // Le cambié el nombre a 'drinkar_db_v4' para que no choque con la versión vieja que probaste
+    let db = JSON.parse(localStorage.getItem('drinkar_db_v4')) || defaultDb;
     let cart = [];
 
-    function save() {
-        localStorage.setItem('drinkar_db', JSON.stringify(db));
+    // Esta función reemplaza a syncToCloud()
+    function saveToLocal() {
+        localStorage.setItem('drinkar_db_v4', JSON.stringify(db));
     }
 
-    function showView(view, el) {
+    function initLocal() {
+        initTheme();
+        document.getElementById('loading').style.display = 'none';
+    }
+
+    // --- THEME ---
+    function initTheme() {
+        const root = document.querySelector(':root');
+        root.style.setProperty('--primary', db.set.primary || '#630d16');
+        root.style.setProperty('--bg', db.set.bg || '#0a0a0a');
+    }
+
+    function showView(viewId, el) {
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById('view-' + view).classList.remove('hidden');
-        el.classList.add('active');
-        if(view === 'inv') renderInv();
-        if(view === 'pos') renderPos();
-        if(view === 'rep') renderRep();
+        document.getElementById('view-' + viewId).classList.remove('hidden');
+        if(el) el.classList.add('active');
+
+        if(viewId === 'inv') renderInv();
+        if(viewId === 'buy') populateSelect('buy-prod');
+        if(viewId === 'pos') { populateSelect('pos-prod'); renderCart(); }
+        if(viewId === 'rep') renderReports();
     }
 
-    function runCalc() {
-        let c = parseFloat(document.getElementById('calc-in').value) || 0;
-        let p = c * 1.15;
+    function populateSelect(id) {
+        document.getElementById(id).innerHTML = db.inv.map(p => `<option value="${p.id}">${p.nom}</option>`).join('');
+    }
+
+    // --- CALCULADORA ---
+    function runLiveCalc() {
+        let cost = parseFloat(document.getElementById('calc-in').value) || 0;
+        let pub = cost * (1 + (db.set.m_pub/100));
         document.getElementById('calc-out').innerHTML = `
-            <div class="price-tag"><span>Público (+15%)</span><b>$${p.toFixed(2)}</b></div>
-            <div class="price-tag"><span>Mayoreo (-5%)</span><b>$${(p*0.95).toFixed(2)}</b></div>
-        `;
+            <div class="price-grid">
+                <div class="price-tag"><span>Público (+15%)</span><b>$${pub.toFixed(2)}</b></div>
+                <div class="price-tag"><span>Comercio (+13.5%)</span><b>$${(cost * (1 + db.set.m_com/100)).toFixed(2)}</b></div>
+                <div class="price-tag"><span>6+ Pzas (-3%)</span><b>$${(pub * 0.97).toFixed(2)}</b></div>
+                <div class="price-tag"><span>12+ Pzas (-5%)</span><b>$${(pub * 0.95).toFixed(2)}</b></div>
+                <div class="price-tag"><span>24+ Pzas (-8%)</span><b>$${(pub * 0.92).toFixed(2)}</b></div>
+            </div>`;
     }
 
-    function addInv() {
+    function calcTaxSim() {
+        let m = parseFloat(document.getElementById('tax-monto').value) || 0;
+        let p = parseFloat(document.getElementById('tax-iva-p').value) || 0;
+        let iva = m * (p/100);
+        document.getElementById('tax-res').innerHTML = `
+            <div style="background:#222; padding:15px; border-radius:10px;">
+                <p>IVA A PAGAR: $${iva.toFixed(2)}</p>
+                <p>TOTAL FACTURADO: $${(m + iva).toFixed(2)}</p>
+            </div>`;
+    }
+
+    // --- INVENTARIO ---
+    function addToInv() {
         let n = document.getElementById('inv-nom').value;
         let c = parseFloat(document.getElementById('inv-cost').value);
-        let q = parseInt(document.getElementById('inv-qty').value);
-        if(!n || isNaN(c)) return alert("Completa los datos");
+        let q = parseInt(document.getElementById('inv-qty').value) || 0;
+        if(!n || isNaN(c)) return alert("Datos faltantes");
         db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
-        save(); renderInv();
+        renderInv(); saveToLocal();
         document.getElementById('inv-nom').value = "";
+        document.getElementById('inv-cost').value = "";
+        document.getElementById('inv-qty').value = "";
     }
 
     function renderInv() {
-        document.getElementById('inv-render').innerHTML = db.inv.map((p, i) => `
-            <div class="card">
-                <b>${p.nom}</b> - Stock: ${p.stock}
-                <br><small>Costo: $${p.cost}</small>
-                <button class="btn-danger" onclick="db.inv.splice(${i},1);save();renderInv()">Borrar</button>
-            </div>
-        `).join('');
+        let html = db.inv.map((p, idx) => {
+            let pub = p.cost * (1 + (db.set.m_pub/100));
+            return `<div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="font-size:18px;">${p.nom}</h2>
+                    <button class="btn-danger" onclick="deleteInv(${idx})">Eliminar</button>
+                </div>
+                <p style="color:var(--accent); font-weight:bold; margin-top:5px;">STOCK: ${p.stock} | COSTO: $${p.cost.toFixed(2)}</p>
+                <div class="price-grid">
+                    <div class="price-tag"><span>Público</span><b>$${pub.toFixed(2)}</b></div>
+                    <div class="price-tag"><span>12+ Pzas</span><b>$${(pub * 0.95).toFixed(2)}</b></div>
+                    <div class="price-tag"><span>24+ Pzas</span><b>$${(pub * 0.92).toFixed(2)}</b></div>
+                </div>
+            </div>`;
+        }).join('');
+        document.getElementById('inv-render').innerHTML = html || "<p>Inventario vacío</p>";
     }
 
-    function renderPos() {
-        document.getElementById('pos-prod').innerHTML = db.inv.map(p => `<option value="${p.id}">${p.nom} (${p.stock})</option>`).join('');
+    function deleteInv(idx) {
+        if(confirm("¿Borrar producto?")) { db.inv.splice(idx, 1); renderInv(); saveToLocal(); }
+    }
+
+    // --- COMPRAS DE INVENTARIO ---
+    function executePurchase() {
+        let id = document.getElementById('buy-prod').value;
+        let qty = parseInt(document.getElementById('buy-qty').value);
+        let cost = parseFloat(document.getElementById('buy-cost').value);
+        let fact = document.getElementById('buy-fact').checked;
+        let ivaP = parseFloat(document.getElementById('buy-iva-p').value) || 0;
+
+        let p = db.inv.find(x => x.id == id);
+        if(!p || isNaN(qty)) return alert("Datos inválidos");
+
+        let unitCost = cost || p.cost;
+        let subtotal = unitCost * qty;
+        let iva = fact ? (subtotal * (ivaP/100)) : 0;
+
+        p.stock += qty;
+        if(cost) p.cost = cost;
+
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo: 'COMPRA', desc: 'Surtido: ' + p.nom, sub: subtotal, iva: iva, total: subtotal + iva, ganancia: 0 });
+        saveToLocal(); alert("Compra registrada.");
+        document.getElementById('buy-qty').value = "";
+        document.getElementById('buy-cost').value = "";
+    }
+
+    // --- GASTOS / FACTURAS DEDUCIBLES ---
+    function addExpense() {
+        let desc = document.getElementById('exp-desc').value;
+        let sub = parseFloat(document.getElementById('exp-sub').value);
+        let fact = document.getElementById('exp-fact').checked;
+        let ivaP = parseFloat(document.getElementById('exp-iva-p').value) || 0;
+
+        if(!desc || isNaN(sub)) return alert("Agrega descripción y monto.");
+
+        let iva = fact ? (sub * (ivaP/100)) : 0;
+
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo: 'GASTO', desc: desc, sub: sub, iva: iva, total: sub + iva, ganancia: 0 });
+        
+        document.getElementById('exp-desc').value = "";
+        document.getElementById('exp-sub').value = "";
+        saveToLocal(); alert("Gasto registrado exitosamente.");
+    }
+
+    // --- VENTA (POS) ---
+    function updatePosPreview(mode) {
+        let id = document.getElementById('pos-prod').value;
+        let qty = parseInt(document.getElementById('pos-qty').value) || 1;
+        let p = db.inv.find(x => x.id == id);
+        if(!p) return;
+
+        let unitVenta = 0; let pub = p.cost * (1 + (db.set.m_pub/100));
+
+        if(mode === 'price') {
+            unitVenta = parseFloat(document.getElementById('pos-price-manual').value) || 0;
+            document.getElementById('pos-margin').value = "";
+        } else if (mode === 'margin') {
+            unitVenta = p.cost * (1 + ((parseFloat(document.getElementById('pos-margin').value)||0)/100));
+            document.getElementById('pos-price-manual').value = "";
+        } else {
+            unitVenta = pub;
+            if(qty >= 24) unitVenta = pub * 0.92; else if(qty >= 12) unitVenta = pub * 0.95; else if(qty >= 6) unitVenta = pub * 0.97;
+        }
+
+        document.getElementById('pos-gain-preview').innerText = `Ganancia Bruta: $${((unitVenta - p.cost) * qty).toFixed(2)}`;
+        return unitVenta;
     }
 
     function addToCart() {
         let id = document.getElementById('pos-prod').value;
-        let q = parseInt(document.getElementById('pos-qty').value);
+        let qty = parseInt(document.getElementById('pos-qty').value);
+        let fact = document.getElementById('pos-fact').checked;
+        let ivaP = parseFloat(document.getElementById('pos-iva-p').value) || 0;
         let p = db.inv.find(x => x.id == id);
-        if(!p || p.stock < q) return alert("No hay stock");
-        let price = p.cost * 1.15;
-        cart.push({ nom: p.nom, qty: q, total: price * q, id: p.id });
+
+        if(!p || p.stock < qty) return alert("Stock insuficiente");
+
+        let unitVenta = updatePosPreview();
+        let sub = unitVenta * qty;
+        let iva = fact ? (sub * (ivaP/100)) : 0;
+
+        cart.push({ id: p.id, nom: p.nom, qty: qty, unit: unitVenta, sub: sub, iva: iva, total: sub + iva, costoReal: p.cost * qty });
         renderCart();
     }
 
     function renderCart() {
-        let t = 0;
-        document.getElementById('cart-list').innerHTML = cart.map(i => {
-            t += i.total;
-            return `<p>${i.qty} x ${i.nom} = $${i.total.toFixed(2)}</p>`;
-        }).join('');
-        document.getElementById('cart-total').innerText = `$${t.toFixed(2)}`;
+        let sub = 0, iva = 0;
+        document.getElementById('cart-list').innerHTML = cart.map((item, idx) => {
+            sub += item.sub; iva += item.iva;
+            return `<div class="cart-item">
+                <div style="display:flex; justify-content:space-between;"><b>${item.nom}</b><button class="btn-danger" onclick="removeFromCart(${idx})">x</button></div>
+                <p style="margin:5px 0; font-size:12px;">${item.qty} un x $${item.unit.toFixed(2)} = $${item.sub.toFixed(2)}</p>
+            </div>`;
+        }).join('') || "<p>Carrito vacío</p>";
+        
+        document.getElementById('cart-sub').innerText = sub.toFixed(2);
+        document.getElementById('cart-iva').innerText = iva.toFixed(2);
+        document.getElementById('cart-total').innerText = `$${(sub + iva).toFixed(2)}`;
     }
 
-    function sell() {
+    function removeFromCart(idx) { cart.splice(idx, 1); renderCart(); }
+
+    function finalizeSale() {
         if(cart.length === 0) return;
-        let total = 0;
-        cart.forEach(i => {
-            total += i.total;
-            let prod = db.inv.find(x => x.id == i.id);
-            if(prod) prod.stock -= i.qty;
+        let tSub = 0, tIva = 0, tGanancia = 0, tItems = "";
+
+        cart.forEach(item => {
+            tSub += item.sub; tIva += item.iva; tGanancia += (item.sub - item.costoReal);
+            db.inv.find(x => x.id == item.id).stock -= item.qty;
+            tItems += `<tr><td>${item.qty}</td><td>${item.nom}</td><td align="right">$${item.unit.toFixed(2)}</td><td align="right">$${item.sub.toFixed(2)}</td></tr>`;
         });
-        db.mov.push({ fecha: new Date().toLocaleDateString(), total: total, desc: "Venta" });
-        cart = []; save(); renderCart(); alert("Venta Exitosa");
+
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo: 'VENTA', desc: 'Venta', sub: tSub, iva: tIva, total: tSub + tIva, ganancia: tGanancia });
+        
+        document.getElementById('ticket-items').innerHTML = tItems;
+        document.getElementById('t-sub').innerText = tSub.toFixed(2);
+        document.getElementById('t-iva').innerText = tIva.toFixed(2);
+        document.getElementById('t-total').innerText = (tSub+tIva).toFixed(2);
+        document.getElementById('t-date').innerText = new Date().toLocaleString();
+
+        saveToLocal();
+        document.getElementById('ticket-preview').classList.remove('hidden');
+        document.getElementById('cart-container').classList.add('hidden');
+        cart = [];
     }
 
-    function renderRep() {
-        let v = 0;
-        document.getElementById('rep-list').innerHTML = db.mov.map(m => {
-            v += m.total;
-            return `<tr><td>${m.fecha}</td><td>${m.desc}</td><td>$${m.total.toFixed(2)}</td></tr>`;
+    function downloadTicket() {
+        html2canvas(document.querySelector("#ticket-wrap")).then(canvas => {
+            let link = document.createElement('a'); link.download = `Ticket-DrinKar.png`; link.href = canvas.toDataURL(); link.click();
+        });
+    }
+
+    // --- REPORTE FISCAL ---
+    function renderReports() {
+        let v = 0, g = 0, ivaCobrado = 0, ivaPagado = 0;
+        let html = [...db.mov].reverse().map(m => {
+            let badgeColor = m.tipo === 'VENTA' ? '#27ae60' : (m.tipo === 'COMPRA' ? '#8e44ad' : '#2980b9');
+            
+            if(m.tipo === 'VENTA') { 
+                v += m.sub; g += m.ganancia; ivaCobrado += m.iva; 
+            } else if (m.tipo === 'COMPRA' || m.tipo === 'GASTO') { 
+                ivaPagado += m.iva; 
+            }
+
+            return `<tr>
+                <td>${m.fecha}</td>
+                <td><span class="badge" style="background:${badgeColor}">${m.tipo}</span></td>
+                <td>${m.desc}</td>
+                <td>$${m.sub.toFixed(2)}</td>
+                <td>$${m.iva.toFixed(2)}</td>
+                <td>$${m.total.toFixed(2)}</td>
+                <td style="color:${m.ganancia > 0 ? 'var(--accent)' : '#555'}">$${m.ganancia.toFixed(2)}</td>
+            </tr>`;
         }).join('');
+
         document.getElementById('rep-v').innerText = `$${v.toFixed(2)}`;
+        document.getElementById('rep-g').innerText = `$${g.toFixed(2)}`;
+        document.getElementById('rep-list').innerHTML = html;
+
+        // Calculo de IVA
+        document.getElementById('rep-iva-cobrado').innerText = `$${ivaCobrado.toFixed(2)}`;
+        document.getElementById('rep-iva-pagado').innerText = `$${ivaPagado.toFixed(2)}`;
+        
+        let balance = ivaCobrado - ivaPagado;
+        let statusCard = document.getElementById('rep-iva-status-card');
+        let msg = document.getElementById('rep-iva-msg');
+        
+        document.getElementById('rep-iva-balance').innerText = `$${Math.abs(balance).toFixed(2)}`;
+
+        if(balance > 0) {
+            statusCard.style.borderColor = '#c0392b';
+            statusCard.style.color = '#c0392b';
+            msg.innerText = "⚠️ Tienes IVA por pagar al SAT";
+        } else if(balance < 0) {
+            statusCard.style.borderColor = 'var(--accent)';
+            statusCard.style.color = 'var(--accent)';
+            msg.innerText = "✅ Tienes saldo de IVA a favor";
+        } else {
+            statusCard.style.borderColor = '#555';
+            statusCard.style.color = 'white';
+            msg.innerText = "Balance en cero";
+        }
     }
 
-    function clearData() {
-        if(confirm("¿Borrar todos los datos?")) { localStorage.clear(); location.reload(); }
+    function clearLocalData() {
+        if(confirm("⚠️ ¿Estás seguro de borrar TODA la base de datos local? Esto no se puede deshacer.")) {
+            localStorage.removeItem('drinkar_db_v4');
+            location.reload();
+        }
     }
 
-    window.onload = () => { document.getElementById('loading').style.display = 'none'; };
+    // Iniciar app al cargar la ventana
+    window.onload = initLocal;
 </script>
+
 </body>
 </html>
