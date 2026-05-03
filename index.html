@@ -216,7 +216,7 @@
   		storageBucket: "drinkar-cc5ab.firebasestorage.app",
   		messagingSenderId: "546531961373",
   		appId: "1:546531961373:web:4d88f6bceb506d640df4f4",
- 		measurementId: "G-PT6RL6GLZR"
+  		measurementId: "G-PT6RL6GLZR"
 	};
 
     firebase.initializeApp(firebaseConfig);
@@ -387,4 +387,69 @@
             db.inv.find(x => x.id == c.id).stock -= c.q;
             h += `<tr><td>${c.q}</td><td>${c.nom}</td><td align="right">$${c.total.toFixed(2)}</td></tr>`;
         });
-        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'VENTA', desc: 'Venta Caja', total: tt, gain: tt-
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'VENTA', desc: 'Venta Caja', total: tt, gain: tt-tc });
+        
+        document.getElementById('t-fecha').innerText = new Date().toLocaleString();
+        document.getElementById('t-items').innerHTML = h;
+        document.getElementById('t-total-final').innerText = `TOTAL: $${tt.toFixed(2)}`;
+        document.getElementById('t-desglose').innerHTML = fact ? `Subtotal: $${(tt/1.16).toFixed(2)}<br>IVA: $${(tt-(tt/1.16)).toFixed(2)}` : "";
+        
+        document.getElementById('pos-ui').classList.add('hidden');
+        document.getElementById('ticket-view').classList.remove('hidden');
+        sync();
+    }
+
+    function resetSale() {
+        cart = []; renderCart();
+        document.getElementById('pos-ui').classList.remove('hidden');
+        document.getElementById('ticket-view').classList.add('hidden');
+    }
+
+    function downloadTicket() {
+        html2canvas(document.querySelector("#ticket-wrap")).then(canvas => {
+            let a = document.createElement('a'); a.download = 'ticket.png'; a.href = canvas.toDataURL(); a.click();
+        });
+    }
+
+    // --- REPORTES ---
+    function renderRep() {
+        let g = 0; let h = "";
+        [...db.mov].reverse().forEach(m => {
+            if(m.tipo === 'VENTA') g += (m.gain || 0);
+            h += `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.desc}</td><td>$${m.total.toFixed(2)}</td></tr>`;
+        });
+        document.getElementById('rep-gain').innerText = `$${g.toFixed(2)}`;
+        document.getElementById('rep-list').innerHTML = h;
+    }
+
+    // --- CONFIG & THEME ---
+    function saveSettings() {
+        db.cfg.pub = parseFloat(document.getElementById('cfg-pub').value);
+        db.cfg.com = parseFloat(document.getElementById('cfg-com').value);
+        sync(); alert("Márgenes guardados");
+    }
+
+    function saveTheme() {
+        db.cfg.colorP = document.getElementById('cfg-color-p').value;
+        db.cfg.colorBG = document.getElementById('cfg-color-bg').value;
+        sync(); alert("Colores aplicados");
+    }
+
+    function applyTheme() {
+        const r = document.querySelector(':root');
+        r.style.setProperty('--primary', db.cfg.colorP);
+        r.style.setProperty('--bg', db.cfg.colorBG);
+        document.getElementById('cfg-color-p').value = db.cfg.colorP;
+        document.getElementById('cfg-color-bg').value = db.cfg.colorBG;
+    }
+
+    function hardReset() {
+        if(confirm("¿BORRAR TODO? No hay marcha atrás.")) {
+            dbRef.set(defaultDB);
+            location.reload();
+        }
+    }
+</script>
+
+</body>
+</html>
