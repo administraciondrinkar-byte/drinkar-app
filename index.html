@@ -3,83 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Business Suite V4.1 - Nube Realtime</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>DrinKar Suite V4.2 - Net Logic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
     <style>
-        :root { --primary: #630d16; --bg: #0a0a0a; --card-bg: #151515; --text: #f8f9fa; --text-muted: #a0a0a0; --accent: #27ae60; --warning: #e67e22; --info: #2980b9; }
+        :root { --primary: #630d16; --bg: #0a0a0a; --card-bg: #151515; --text: #f8f9fa; --text-muted: #a0a0a0; --accent: #27ae60; --info: #2980b9; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: all 0.3s ease; }
-        h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
         
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Loading */
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .header { background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%); padding: 30px 20px; text-align: center; border-bottom: 2px solid var(--primary); }
-        .nav-bar { background: var(--card-bg); display: flex; justify-content: space-between; padding: 10px 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.5); overflow-x: auto; white-space: nowrap; gap: 5px; }
-        .nav-item { color: var(--text-muted); text-decoration: none; font-size: 9px; text-align: center; padding: 5px 10px; transition: 0.3s; flex: 1; }
-        .nav-item.active { color: var(--text); font-weight: bold; }
-        .nav-item.active .nav-icon { background: var(--primary); color: white; transform: translateY(-3px); }
-        .nav-icon { font-size: 18px; display: block; margin-bottom: 5px; background: #222; padding: 8px; border-radius: 10px; transition: 0.3s; }
+        .header { padding: 30px 20px; text-align: center; border-bottom: 2px solid var(--primary); }
+        .nav-bar { background: var(--card-bg); display: flex; justify-content: space-between; padding: 10px; position: sticky; top: 0; z-index: 1000; overflow-x: auto; gap: 5px; }
+        .nav-item { color: var(--text-muted); text-decoration: none; font-size: 10px; text-align: center; flex: 1; min-width: 60px; }
+        .nav-item.active { color: white; font-weight: bold; }
+        .nav-icon { font-size: 18px; display: block; margin-bottom: 5px; background: #222; padding: 8px; border-radius: 10px; }
+        .active .nav-icon { background: var(--primary); }
 
-        .container { padding: 20px; max-width: 900px; margin: auto; }
-        .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); }
-
-        .field-group { margin-bottom: 15px; }
-        label { display: block; font-size: 11px; color: var(--primary); margin-bottom: 5px; font-weight: 700; text-transform: uppercase; }
-        input, select { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 10px; color: white; font-size: 15px; outline: none; }
+        .container { padding: 15px; max-width: 800px; margin: auto; }
+        .card { background: var(--card-bg); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid #222; }
         
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; text-transform: uppercase; margin-top:10px; transition: 0.2s; }
+        label { display: block; font-size: 11px; color: var(--primary); margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
+        input, select { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 10px; color: white; margin-bottom: 15px; font-size: 14px; }
+        
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
-        .btn-danger { background: #c0392b; color: white; padding: 8px 12px; font-size: 11px; width: auto; margin:0; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
         .btn-success { background: var(--accent); color: white; }
-        .btn-info { background: var(--info); color: white; }
+        .btn-danger { background: #c0392b; color: white; }
+        .btn-print { background: var(--info); color: white; }
 
-        .price-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
-        .price-tag { background: #1a1a1a; padding: 10px; border-radius: 8px; border-left: 3px solid var(--primary); }
-        .price-tag span { display: block; font-size: 9px; color: var(--text-muted); }
-        .price-tag b { font-size: 15px; color: var(--text); }
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; padding: 10px; border-bottom: 2px solid var(--primary); color: var(--primary); }
+        td { padding: 10px; border-bottom: 1px solid #222; }
 
-        .cart-item { background: #1a1a1a; border-radius: 10px; padding: 15px; margin-bottom: 10px; position: relative; border: 1px solid #333; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #111; border-radius: 10px; overflow: hidden; }
-        th { text-align: left; font-size: 10px; color: var(--primary); padding: 12px; border-bottom: 2px solid var(--primary); background: #000; }
-        td { padding: 12px; border-bottom: 1px solid #222; font-size: 12px; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
-        
+        /* Ticket CSS Fixed */
+        #ticket-wrap { background: white; color: black; padding: 20px; width: 300px; margin: 20px auto; font-family: monospace; }
+        #ticket-wrap * { color: black !important; }
+        .ticket-table { width: 100%; border-top: 1px dashed black; }
+        .ticket-table th { border-bottom: 1px dashed black; color: black; }
+        .ticket-table td { border: none; padding: 2px 0; }
+
+        .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .price-tag { background: #111; padding: 8px; border-radius: 5px; border-left: 3px solid var(--primary); }
+        .price-tag small { font-size: 9px; color: var(--text-muted); display: block; }
+        .price-tag b { font-size: 13px; }
+
         .hidden { display: none; }
-        #ticket-wrap { background: white; color: black; padding: 30px; width: 380px; margin: 20px auto; font-family: 'Courier New', Courier, monospace; line-height: 1.2; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
-        .ticket-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
-        .ticket-table { width: 100%; font-size: 12px; border-collapse: collapse; }
-        .ticket-table th { color: black; border-bottom: 1px dashed black; background: none; padding: 5px 0; }
-        .ticket-table td { color: black; border: none; padding: 5px 0; font-size: 12px; }
-
-        .flex-row { display: flex; gap: 10px; }
-        .flex-row > div { flex: 1; }
-        .chk-group { display: flex; align-items: center; gap: 10px; background: #222; padding: 10px; border-radius: 10px; }
-        .chk-group input { width: auto; margin: 0; }
-
-        /* Estilos Reportes Fiscales */
-        .tax-card { background: #1a1a1a; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #333; }
-        .tax-val { font-size: 24px; font-weight: bold; margin: 5px 0; }
+        .flex { display: flex; gap: 10px; }
+        .flex > * { flex: 1; }
     </style>
 </head>
 <body>
 
 <div id="loading">
     <div class="spinner"></div>
-    <h3 id="load-text">Conectando a Firebase...</h3>
+    <p>Sincronizando DrinKar...</p>
 </div>
 
 <div class="header">
-    <h1 style="letter-spacing: 4px;">Drin<span style="color:var(--primary)">Kar</span></h1>
-    <p style="font-size: 9px; color: var(--text-muted); margin-top: 5px;">ERP & FISCAL SUITE V4.1 (FIREBASE CLOUD)</p>
+    <h1 style="margin:0">DRIN<span style="color:var(--primary)">KAR</span></h1>
+    <small style="color:var(--text-muted)">V4.2 NET ENTERPRISE</small>
 </div>
 
 <div class="nav-bar">
@@ -87,501 +78,394 @@
     <a href="#" class="nav-item" onclick="showView('inv', this)"><span class="nav-icon">📦</span>INV</a>
     <a href="#" class="nav-item" onclick="showView('buy', this)"><span class="nav-icon">📥</span>COMPRA</a>
     <a href="#" class="nav-item" onclick="showView('pos', this)"><span class="nav-icon">🛒</span>VENTA</a>
-    <a href="#" class="nav-item" onclick="showView('exp', this)"><span class="nav-icon">🧾</span>GASTOS</a>
-    <a href="#" class="nav-item" onclick="showView('rep', this)"><span class="nav-icon">📈</span>REPORTE</a>
+    <a href="#" class="nav-item" onclick="showView('rep', this)"><span class="nav-icon">📈</span>REP</a>
+    <a href="#" class="nav-item" onclick="showView('cfg', this)"><span class="nav-icon">⚙️</span>CFG</a>
 </div>
 
 <div class="container">
 
     <div id="view-calc" class="view">
         <div class="card">
-            <h3>Calculadora de Precios</h3>
-            <div class="field-group">
-                <label>Precio Neto Proveedor (Costo)</label>
-                <input type="number" id="calc-in" placeholder="0.00" oninput="runLiveCalc()">
+            <h3>Simulador de Facturación (Proveedor)</h3>
+            <p style="font-size: 11px; color:var(--text-muted)">Ingresa los montos NETOS para desglosar IVA y comparar con tu factura.</p>
+            <div class="flex">
+                <div><label>Monto Neto</label><input type="number" id="sim-net" placeholder="0.00"></div>
+                <div><label>% IVA</label><input type="number" id="sim-iva-p" value="16"></div>
             </div>
-            <div id="calc-out"></div>
-        </div>
-        <div class="card">
-            <h3>Simulador de Facturación</h3>
-            <div class="flex-row">
-                <div class="field-group"><label>Monto a Facturar</label><input type="number" id="tax-monto" placeholder="0.00"></div>
-                <div class="field-group"><label>% IVA</label><input type="number" id="tax-iva-p" value="16"></div>
-            </div>
-            <button class="btn btn-outline" onclick="calcTaxSim()">Calcular Impuestos</button>
-            <div id="tax-res" style="margin-top:15px;"></div>
+            <button class="btn btn-outline" onclick="addToSim()">+ Agregar a la lista</button>
+            
+            <table style="margin-top:20px;">
+                <thead><tr><th>NETO</th><th>SUBTOTAL</th><th>IVA</th><th></th></tr></thead>
+                <tbody id="sim-list"></tbody>
+            </table>
+            <div id="sim-total-box" style="text-align:right; margin-top:15px; border-top:1px solid var(--primary); padding-top:10px;"></div>
         </div>
     </div>
 
     <div id="view-inv" class="view hidden">
         <div class="card">
-            <h3>Registro de Inventario</h3>
-            <div class="field-group"><label>Nombre del Producto</label><input type="text" id="inv-nom" placeholder="Ej. Whisky 750ml"></div>
-            <div class="flex-row">
-                <div class="field-group"><label>Costo Unitario</label><input type="number" id="inv-cost"></div>
-                <div class="field-group"><label>Stock Inicial</label><input type="number" id="inv-qty"></div>
+            <h3>Nuevo Producto</h3>
+            <label>Nombre del Producto</label>
+            <input type="text" id="inv-nom" placeholder="Ej. Tequila 700ml">
+            <div class="flex">
+                <div><label>Costo Neto</label><input type="number" id="inv-cost" placeholder="Total Pagado"></div>
+                <div><label>Stock</label><input type="number" id="inv-qty" value="0"></div>
             </div>
-            <button class="btn btn-primary" onclick="addToInv()">Guardar Producto</button>
+            <button class="btn btn-primary" onclick="addToInv()">Guardar en Nube</button>
         </div>
+        <button class="btn btn-print" onclick="printInv()">🖨️ Generar Reporte de Precios</button>
         <div id="inv-render"></div>
     </div>
 
     <div id="view-buy" class="view hidden">
         <div class="card">
-            <h3>Ingreso de Mercancía (Inventario)</h3>
-            <div class="field-group"><label>Seleccionar Producto</label><select id="buy-prod"></select></div>
-            <div class="flex-row">
-                <div class="field-group"><label>Cantidad</label><input type="number" id="buy-qty"></div>
-                <div class="field-group"><label>Costo Actualizado</label><input type="number" id="buy-cost" placeholder="Opcional"></div>
+            <h3>Ingreso de Mercancía</h3>
+            <label>Producto</label><select id="buy-prod"></select>
+            <div class="flex">
+                <div><label>Cantidad</label><input type="number" id="buy-qty"></div>
+                <div><label>Costo Neto Unitario</label><input type="number" id="buy-cost" placeholder="Pagarás..."></div>
             </div>
-            <div class="flex-row">
-                <div class="chk-group"><input type="checkbox" id="buy-fact"> <label style="margin:0">Facturado</label></div>
-                <div class="field-group"><label>% IVA Compra</label><input type="number" id="buy-iva-p" value="16"></div>
+            <div class="flex" style="align-items:center;">
+                <input type="checkbox" id="buy-fact" style="width:20px; margin:0"> 
+                <label style="margin:0">¿Viene Facturado?</label>
             </div>
             <button class="btn btn-primary" onclick="executePurchase()">Registrar Compra</button>
         </div>
     </div>
 
-    <div id="view-exp" class="view hidden">
-        <div class="card">
-            <h3>Registro de Gastos y Deducciones</h3>
-            <div class="field-group">
-                <label>Concepto del Gasto</label>
-                <input type="text" id="exp-desc" placeholder="Ej. Pago de CFE / Publicidad Facebook">
-            </div>
-            <div class="flex-row">
-                <div class="field-group">
-                    <label>Subtotal (Sin IVA)</label>
-                    <input type="number" id="exp-sub" placeholder="0.00">
-                </div>
-            </div>
-            <div class="flex-row">
-                <div class="chk-group"><input type="checkbox" id="exp-fact" checked> <label style="margin:0">Es Deducible (Facturado)</label></div>
-                <div class="field-group"><label>% IVA</label><input type="number" id="exp-iva-p" value="16"></div>
-            </div>
-            <button class="btn btn-info" onclick="addExpense()">Registrar Gasto Deducible</button>
-        </div>
-    </div>
-
     <div id="view-pos" class="view hidden">
-        <div class="card">
-            <h3>Punto de Venta DrinKar</h3>
-            <div class="field-group"><label>Producto</label><select id="pos-prod" onchange="updatePosPreview()"></select></div>
-            <div class="field-group"><label>Cantidad</label><input type="number" id="pos-qty" value="1" oninput="updatePosPreview()"></div>
-            
-            <div style="border: 1px solid #333; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                <label style="color:var(--accent)">Elegir forma de venta:</label>
-                <div class="flex-row">
-                    <div class="field-group"><label>Precio de Venta</label><input type="number" id="pos-price-manual" placeholder="Ej. 500" oninput="updatePosPreview('price')"></div>
-                    <div class="field-group"><label>Margen %</label><input type="number" id="pos-margin" placeholder="Ej. 15" oninput="updatePosPreview('margin')"></div>
+        <div id="pos-ui">
+            <div class="card">
+                <h3>Punto de Venta</h3>
+                <label>Producto</label><select id="pos-prod"></select>
+                <div class="flex">
+                    <div><label>Cantidad</label><input type="number" id="pos-qty" value="1"></div>
+                    <div><label>Precio Neto Venta</label><input type="number" id="pos-price" placeholder="Lo que cobrarás"></div>
                 </div>
-                <p id="pos-gain-preview" style="font-size:11px; text-align:center; margin:0; color:var(--text-muted)"></p>
+                <button class="btn btn-outline" onclick="addToCart()">+ Agregar al Carrito</button>
             </div>
 
-            <div class="flex-row">
-                <div class="chk-group"><input type="checkbox" id="pos-fact"> <label style="margin:0">Venta Facturada</label></div>
-                <div class="field-group"><label>% IVA</label><input type="number" id="pos-iva-p" value="16"></div>
+            <div class="card" id="cart-box">
+                <h3>Carrito</h3>
+                <div id="cart-items"></div>
+                <div style="border-top:1px solid #333; margin-top:10px; padding-top:10px;">
+                    <div class="flex" style="align-items:center; margin-bottom:10px;">
+                        <input type="checkbox" id="pos-fact" style="width:20px; margin:0"> 
+                        <label style="margin:0">Venta Facturada (Desglosar en ticket)</label>
+                    </div>
+                    <h2 id="cart-total" style="text-align:right; margin:0; color:var(--accent)">$0.00</h2>
+                    <button class="btn btn-success" onclick="finalizeSale()">Finalizar y Ver Ticket</button>
+                </div>
             </div>
-            <button class="btn btn-outline" onclick="addToCart()">+ Agregar al Carrito</button>
         </div>
 
-        <div class="card" id="cart-container">
-            <h3>Carrito Actual</h3>
-            <div id="cart-list"></div>
-            <div style="text-align:right; border-top:1px solid #333; padding-top:15px;">
-                <p style="font-size:12px; margin:0;">SUBTOTAL: <span id="cart-sub">0.00</span></p>
-                <p style="font-size:12px; margin:0;">IVA: <span id="cart-iva">0.00</span></p>
-                <h2 style="color:var(--primary)" id="cart-total">$0.00</h2>
-            </div>
-            <button class="btn btn-success" onclick="finalizeSale()">Finalizar Venta</button>
-        </div>
-
-        <div id="ticket-preview" class="hidden">
+        <div id="ticket-view" class="hidden">
             <div id="ticket-wrap">
-                <div class="ticket-header">
-                    <h2 style="margin:0; color:black">DrinKar</h2>
-                    <small>COMPROBANTE DE VENTA</small><br>
-                    <small id="t-date"></small>
-                </div>
+                <center>
+                    <h2 style="margin:0">DRINKAR</h2>
+                    <small id="t-fecha"></small>
+                </center>
+                <br>
                 <table class="ticket-table">
-                    <thead>
-                        <tr><th align="left">CANT</th><th align="left">CONCEPTO</th><th align="right">UNIT</th><th align="right">TOTAL</th></tr>
-                    </thead>
-                    <tbody id="ticket-items"></tbody>
+                    <thead><tr><th>Cant</th><th>Concepto</th><th align="right">Total</th></tr></thead>
+                    <tbody id="t-body"></tbody>
                 </table>
-                <div style="border-top: 1px solid black; margin-top:10px; padding-top:10px; text-align:right;">
-                    <p style="margin:2px 0">SUBTOTAL: <span id="t-sub"></span></p>
-                    <p style="margin:2px 0">IVA: <span id="t-iva"></span></p>
-                    <h3 style="margin:2px 0">TOTAL: <span id="t-total"></span></h3>
-                </div>
-                <center style="margin-top:20px; font-size:10px;">¡Gracias por su compra!<br>DrinKar Suite Enterprise</center>
+                <div id="t-desglose" style="text-align:right; margin-top:10px; font-size:12px;"></div>
+                <h3 id="t-final-total" style="text-align:right; border-top:1px solid black; padding-top:5px;"></h3>
+                <center style="margin-top:20px; font-size:10px;">¡Gracias por su preferencia!</center>
             </div>
-            <button class="btn btn-secondary" onclick="downloadTicket()">Descargar Ticket Imagen</button>
-            <button class="btn btn-outline" onclick="showView('pos', this)">Nueva Venta</button>
+            <button class="btn btn-primary" onclick="downloadTicket()">Descargar Imagen</button>
+            <button class="btn btn-outline" onclick="resetSale()">Nueva Venta</button>
         </div>
     </div>
 
     <div id="view-rep" class="view hidden">
         <div class="card">
-            <h3>Rendimiento Comercial</h3>
-            <div style="display:flex; justify-content:space-around; text-align:center;">
-                <div><label>Ventas Netas</label><h2 id="rep-v">$0</h2></div>
-                <div><label>Utilidad Bruta</label><h2 id="rep-g" style="color:var(--accent)">$0</h2></div>
-            </div>
+            <label>Utilidad Estimada (Solo Ventas)</label>
+            <h2 id="rep-utilidad" style="color:var(--accent); margin:0">$0.00</h2>
         </div>
-
-        <div class="card" style="border-color: var(--info);">
-            <h3>Balance Fiscal (Control de IVA)</h3>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 15px;">
-                <div class="tax-card">
-                    <label style="color:var(--text-muted)">IVA Cobrado (Ventas)</label>
-                    <div class="tax-val" style="color:#c0392b" id="rep-iva-cobrado">$0.00</div>
-                </div>
-                <div class="tax-card">
-                    <label style="color:var(--text-muted)">IVA Pagado (Gastos)</label>
-                    <div class="tax-val" style="color:var(--accent)" id="rep-iva-pagado">$0.00</div>
-                </div>
-            </div>
-            <div class="tax-card" id="rep-iva-status-card" style="background:#222;">
-                <label>BALANCE FINAL DE IVA</label>
-                <div class="tax-val" id="rep-iva-balance">$0.00</div>
-                <p id="rep-iva-msg" style="margin:0; font-size:12px;"></p>
-            </div>
-        </div>
-
         <div class="card">
-            <h3>Historial de Movimientos</h3>
+            <h3>Historial</h3>
             <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr><th>FECHA</th><th>TIPO</th><th>CONCEPTO</th><th>TOTAL</th><th>UTILIDAD</th></tr>
-                    </thead>
-                    <tbody id="rep-list"></tbody>
+                <table id="rep-table">
+                    <thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Neto</th></tr></thead>
+                    <tbody id="rep-body"></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <div id="view-cfg" class="view hidden">
+        <div class="card">
+            <h3>Configuración de Márgenes</h3>
+            <div class="flex">
+                <div><label>% Público</label><input type="number" id="cfg-pub" value="15"></div>
+                <div><label>% B2B (Comercio)</label><input type="number" id="cfg-com" value="13.5"></div>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">Guardar Márgenes</button>
+        </div>
+        <div class="card" style="border-color: #c0392b;">
+            <h3 style="color:#c0392b">Zona de Peligro</h3>
+            <p style="font-size:11px;">Esto borrará todos los productos, ventas y configuración de la nube.</p>
+            <button class="btn btn-danger" onclick="hardReset()">REINICIAR SISTEMA COMPLETO</button>
         </div>
     </div>
 
 </div>
 
 <script>
-    // =========================================================
-    // ⚠️ ATENCIÓN: PEGA TU CONFIGURACIÓN DE FIREBASE AQUÍ ABAJO
-    // =========================================================
+    // --- CONFIGURACIÓN FIREBASE (PEGA TUS CLAVES AQUÍ) ---
     const firebaseConfig = {
-  	apiKey: "AIzaSyC2OpCZLRUbZJB16pkglHxOK2YiVzqffKQ",
-  	authDomain: "drinkar-cc5ab.firebaseapp.com",
-  	databaseURL: "https://drinkar-cc5ab-default-rtdb.firebaseio.com",
-  	projectId: "drinkar-cc5ab",
-  	storageBucket: "drinkar-cc5ab.firebasestorage.app",
-  	messagingSenderId: "546531961373",
-  	appId: "1:546531961373:web:4d88f6bceb506d640df4f4",
-  	measurementId: "G-PT6RL6GLZR"
+    	const firebaseConfig = {
+  		apiKey: "AIzaSyC2OpCZLRUbZJB16pkglHxOK2YiVzqffKQ",
+  		authDomain: "drinkar-cc5ab.firebaseapp.com",
+ 		databaseURL: "https://drinkar-cc5ab-default-rtdb.firebaseio.com",
+  		projectId: "drinkar-cc5ab",
+  		storageBucket: "drinkar-cc5ab.firebasestorage.app",
+  		messagingSenderId: "546531961373",
+  		appId: "1:546531961373:web:4d88f6bceb506d640df4f4",
+  		measurementId: "G-PT6RL6GLZR"
 	};
-    // Inicializar Firebase
+
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    // =========================================================
+    const dbRef = firebase.database().ref('drinkar_cloud');
 
-    const defaultDb = { inv: [], mov: [], set: { m_pub: 15, m_com: 13.5, m_6: 3, m_12: 5, m_24: 8, primary: '#630d16', bg: '#0a0a0a' } };
-    let db = defaultDb;
+    const defaultDB = {
+        inv: [],
+        mov: [],
+        cfg: { pub: 15, com: 13.5 },
+        sim: []
+    };
+    let db = defaultDB;
     let cart = [];
-    let currentView = 'calc'; // Para saber qué pantalla recargar
 
-    // --- ESCUCHADOR EN TIEMPO REAL (FIREBASE) ---
-    database.ref('drinkar_data').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            // Asegurarnos de que existan los arrays por si Firebase los borra al estar vacíos
-            db = {
-                inv: data.inv || [],
-                mov: data.mov || [],
-                set: data.set || defaultDb.set
-            };
-        } else {
-            db = defaultDb;
-        }
-        
-        initTheme();
+    // --- ESCUCHA TIEMPO REAL ---
+    dbRef.on('value', (snap) => {
+        db = snap.val() || defaultDB;
+        if (!db.cfg) db.cfg = defaultDB.cfg;
         document.getElementById('loading').style.display = 'none';
-
-        // Actualizar la pantalla que esté abierta en ese momento para reflejar cambios de otros dispositivos
-        if(currentView === 'inv') renderInv();
-        if(currentView === 'buy' || currentView === 'pos') populateSelect(currentView + '-prod');
-        if(currentView === 'rep') renderReports();
+        refreshAll();
     });
 
-    // Función para guardar en la nube
-    function saveToCloud() {
-        // En Firebase, `set` sobreescribe toda la ruta con la nueva información
-        database.ref('drinkar_data').set(db);
+    function save() { dbRef.set(db); }
+
+    function refreshAll() {
+        renderInv();
+        renderSim();
+        renderRep();
+        populateSelects();
     }
 
-    // --- THEME ---
-    function initTheme() {
-        const root = document.querySelector(':root');
-        root.style.setProperty('--primary', db.set.primary || '#630d16');
-        root.style.setProperty('--bg', db.set.bg || '#0a0a0a');
-    }
-
-    function showView(viewId, el) {
-        currentView = viewId;
+    function showView(view, el) {
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById('view-' + viewId).classList.remove('hidden');
+        document.getElementById('view-' + view).classList.remove('hidden');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         if(el) el.classList.add('active');
-
-        if(viewId === 'inv') renderInv();
-        if(viewId === 'buy') populateSelect('buy-prod');
-        if(viewId === 'pos') { populateSelect('pos-prod'); renderCart(); }
-        if(viewId === 'rep') renderReports();
     }
 
-    function populateSelect(id) {
-        document.getElementById(id).innerHTML = db.inv.map(p => `<option value="${p.id}">${p.nom} (Stock: ${p.stock})</option>`).join('');
+    // --- LÓGICA NETO ---
+    const getSubtotal = (net) => net / 1.16;
+    const getIVA = (net) => net - (net / 1.16);
+
+    // --- SIMULADOR ---
+    function addToSim() {
+        let net = parseFloat(document.getElementById('sim-net').value);
+        if(!net) return;
+        db.sim = db.sim || [];
+        db.sim.push({ net: net, sub: getSubtotal(net), iva: getIVA(net) });
+        save();
+        document.getElementById('sim-net').value = "";
     }
 
-    // --- CALCULADORA ---
-    function runLiveCalc() {
-        let cost = parseFloat(document.getElementById('calc-in').value) || 0;
-        let pub = cost * (1 + (db.set.m_pub/100));
-        document.getElementById('calc-out').innerHTML = `
-            <div class="price-grid">
-                <div class="price-tag"><span>Público (+15%)</span><b>$${pub.toFixed(2)}</b></div>
-                <div class="price-tag"><span>Comercio (+13.5%)</span><b>$${(cost * (1 + db.set.m_com/100)).toFixed(2)}</b></div>
-                <div class="price-tag"><span>6+ Pzas (-3%)</span><b>$${(pub * 0.97).toFixed(2)}</b></div>
-                <div class="price-tag"><span>12+ Pzas (-5%)</span><b>$${(pub * 0.95).toFixed(2)}</b></div>
-                <div class="price-tag"><span>24+ Pzas (-8%)</span><b>$${(pub * 0.92).toFixed(2)}</b></div>
-            </div>`;
+    function renderSim() {
+        let html = ""; let tNet = 0, tSub = 0, tIva = 0;
+        (db.sim || []).forEach((s, idx) => {
+            tNet += s.net; tSub += s.sub; tIva += s.iva;
+            html += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td>
+            <td><button onclick="delSim(${idx})" style="background:none; border:none; color:red;">X</button></td></tr>`;
+        });
+        document.getElementById('sim-list').innerHTML = html;
+        document.getElementById('sim-total-box').innerHTML = `<b>TOTAL NETO: $${tNet.toFixed(2)}</b><br><small>Subtotal: $${tSub.toFixed(2)} | IVA: $${tIva.toFixed(2)}</small>`;
     }
-
-    function calcTaxSim() {
-        let m = parseFloat(document.getElementById('tax-monto').value) || 0;
-        let p = parseFloat(document.getElementById('tax-iva-p').value) || 0;
-        let iva = m * (p/100);
-        document.getElementById('tax-res').innerHTML = `
-            <div style="background:#222; padding:15px; border-radius:10px;">
-                <p>IVA A PAGAR: $${iva.toFixed(2)}</p>
-                <p>TOTAL FACTURADO: $${(m + iva).toFixed(2)}</p>
-            </div>`;
-    }
+    function delSim(i) { db.sim.splice(i,1); save(); }
 
     // --- INVENTARIO ---
     function addToInv() {
-        let n = document.getElementById('inv-nom').value;
-        let c = parseFloat(document.getElementById('inv-cost').value);
-        let q = parseInt(document.getElementById('inv-qty').value) || 0;
-        if(!n || isNaN(c)) return alert("Datos faltantes");
+        let nom = document.getElementById('inv-nom').value;
+        let cost = parseFloat(document.getElementById('inv-cost').value);
+        let qty = parseInt(document.getElementById('inv-qty').value);
+        if(!nom || isNaN(cost)) return alert("Completa datos");
         
-        db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
-        saveToCloud(); // ¡Se guarda en Firebase automáticamente!
-        
+        db.inv.push({ id: Date.now(), nom, cost, stock: qty });
+        save();
         document.getElementById('inv-nom').value = "";
         document.getElementById('inv-cost').value = "";
-        document.getElementById('inv-qty').value = "";
     }
 
     function renderInv() {
-        let html = db.inv.map((p, idx) => {
-            let pub = p.cost * (1 + (db.set.m_pub/100));
-            return `<div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h2 style="font-size:18px;">${p.nom}</h2>
-                    <button class="btn-danger" onclick="deleteInv(${idx})">Eliminar</button>
-                </div>
-                <p style="color:var(--accent); font-weight:bold; margin-top:5px;">STOCK: ${p.stock} | COSTO: $${p.cost.toFixed(2)}</p>
+        let html = "";
+        db.inv.forEach((p, idx) => {
+            let pub = p.cost * (1 + (db.cfg.pub/100));
+            let b2b = p.cost * (1 + (db.cfg.com/100));
+            html += `<div class="card">
+                <div class="flex"><b>${p.nom}</b> <span style="color:var(--accent)">STOCK: ${p.stock}</span></div>
                 <div class="price-grid">
-                    <div class="price-tag"><span>Público</span><b>$${pub.toFixed(2)}</b></div>
-                    <div class="price-tag"><span>12+ Pzas</span><b>$${(pub * 0.95).toFixed(2)}</b></div>
-                    <div class="price-tag"><span>24+ Pzas</span><b>$${(pub * 0.92).toFixed(2)}</b></div>
+                    <div class="price-tag"><small>COSTO NETO</small><b>$${p.cost.toFixed(2)}</b></div>
+                    <div class="price-tag"><small>PÚBLICO (+${db.cfg.pub}%)</small><b>$${pub.toFixed(2)}</b></div>
+                    <div class="price-tag"><small>B2B/COMERCIO</small><b>$${b2b.toFixed(2)}</b></div>
+                    <div class="price-tag"><small>6+ PIEZAS (-3%)</small><b>$${(pub * 0.97).toFixed(2)}</b></div>
                 </div>
+                <button class="btn-danger" style="padding:5px; margin-top:10px; font-size:10px;" onclick="delInv(${idx})">Eliminar</button>
             </div>`;
-        }).join('');
-        document.getElementById('inv-render').innerHTML = html || "<p>Inventario vacío</p>";
+        });
+        document.getElementById('inv-render').innerHTML = html;
+    }
+    function delInv(i) { if(confirm("¿Borrar?")) { db.inv.splice(i,1); save(); } }
+
+    function printInv() {
+        let win = window.open('', '', 'height=700,width=900');
+        let table = "<h2>Catálogo de Precios DrinKar</h2><table border='1' style='width:100%; border-collapse:collapse;'><thead><tr><th>Producto</th><th>Público</th><th>6+ Pzas</th><th>B2B</th></tr></thead><tbody>";
+        db.inv.forEach(p => {
+            let pub = p.cost * (1 + (db.cfg.pub/100));
+            table += `<tr><td>${p.nom}</td><td>$${pub.toFixed(2)}</td><td>$${(pub*0.97).toFixed(2)}</td><td>$${(p.cost*(1+(db.cfg.com/100))).toFixed(2)}</td></tr>`;
+        });
+        win.document.write(table + "</tbody></table>");
+        win.print();
     }
 
-    function deleteInv(idx) {
-        if(confirm("¿Borrar producto?")) { db.inv.splice(idx, 1); saveToCloud(); }
+    // --- COMPRA ---
+    function populateSelects() {
+        let options = db.inv.map(p => `<option value="${p.id}">${p.nom}</option>`).join('');
+        document.getElementById('buy-prod').innerHTML = options;
+        document.getElementById('pos-prod').innerHTML = options;
     }
 
-    // --- COMPRAS DE INVENTARIO ---
     function executePurchase() {
         let id = document.getElementById('buy-prod').value;
         let qty = parseInt(document.getElementById('buy-qty').value);
-        let cost = parseFloat(document.getElementById('buy-cost').value);
+        let net = parseFloat(document.getElementById('buy-cost').value);
         let fact = document.getElementById('buy-fact').checked;
-        let ivaP = parseFloat(document.getElementById('buy-iva-p').value) || 0;
-
         let p = db.inv.find(x => x.id == id);
-        if(!p || isNaN(qty)) return alert("Datos inválidos");
-
-        let unitCost = cost || p.cost;
-        let subtotal = unitCost * qty;
-        let iva = fact ? (subtotal * (ivaP/100)) : 0;
+        if(!p || isNaN(qty)) return;
 
         p.stock += qty;
-        if(cost) p.cost = cost;
-
-        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo: 'COMPRA', desc: 'Surtido: ' + p.nom, sub: subtotal, iva: iva, total: subtotal + iva, ganancia: 0 });
-        saveToCloud();
-        alert("Compra registrada en la nube.");
-        document.getElementById('buy-qty').value = "";
-        document.getElementById('buy-cost').value = "";
-    }
-
-    // --- GASTOS / FACTURAS DEDUCIBLES ---
-    function addExpense() {
-        let desc = document.getElementById('exp-desc').value;
-        let sub = parseFloat(document.getElementById('exp-sub').value);
-        let fact = document.getElementById('exp-fact').checked;
-        let ivaP = parseFloat(document.getElementById('exp-iva-p').value) || 0;
-
-        if(!desc || isNaN(sub)) return alert("Agrega descripción y monto.");
-
-        let iva = fact ? (sub * (ivaP/100)) : 0;
-
-        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo: 'GASTO', desc: desc, sub: sub, iva: iva, total: sub + iva, ganancia: 0 });
+        if(net) p.cost = net;
         
-        saveToCloud();
-        document.getElementById('exp-desc').value = "";
-        document.getElementById('exp-sub').value = "";
-        alert("Gasto registrado en la nube.");
+        db.mov.push({
+            fecha: new Date().toLocaleDateString(),
+            tipo: 'COMPRA',
+            desc: `Surtido: ${p.nom} (x${qty})`,
+            net: net * qty,
+            sub: fact ? getSubtotal(net * qty) : net * qty,
+            iva: fact ? getIVA(net * qty) : 0
+        });
+        save();
+        alert("Surtido exitoso");
     }
 
-    // --- VENTA (POS) ---
-    function updatePosPreview(mode) {
-        let id = document.getElementById('pos-prod').value;
-        let qty = parseInt(document.getElementById('pos-qty').value) || 1;
-        let p = db.inv.find(x => x.id == id);
-        if(!p) return;
-
-        let unitVenta = 0; let pub = p.cost * (1 + (db.set.m_pub/100));
-
-        if(mode === 'price') {
-            unitVenta = parseFloat(document.getElementById('pos-price-manual').value) || 0;
-            document.getElementById('pos-margin').value = "";
-        } else if (mode === 'margin') {
-            unitVenta = p.cost * (1 + ((parseFloat(document.getElementById('pos-margin').value)||0)/100));
-            document.getElementById('pos-price-manual').value = "";
-        } else {
-            unitVenta = pub;
-            if(qty >= 24) unitVenta = pub * 0.92; else if(qty >= 12) unitVenta = pub * 0.95; else if(qty >= 6) unitVenta = pub * 0.97;
-        }
-
-        document.getElementById('pos-gain-preview').innerText = `Ganancia Bruta: $${((unitVenta - p.cost) * qty).toFixed(2)}`;
-        return unitVenta;
-    }
-
+    // --- POS ---
     function addToCart() {
         let id = document.getElementById('pos-prod').value;
         let qty = parseInt(document.getElementById('pos-qty').value);
-        let fact = document.getElementById('pos-fact').checked;
-        let ivaP = parseFloat(document.getElementById('pos-iva-p').value) || 0;
+        let netUnit = parseFloat(document.getElementById('pos-price').value);
         let p = db.inv.find(x => x.id == id);
 
-        if(!p || p.stock < qty) return alert("Stock insuficiente");
+        if(!p || isNaN(netUnit)) return alert("Ingresa precio de venta");
+        if(p.stock < qty) return alert("Sin stock suficiente");
 
-        let unitVenta = updatePosPreview();
-        let sub = unitVenta * qty;
-        let iva = fact ? (sub * (ivaP/100)) : 0;
-
-        cart.push({ id: p.id, nom: p.nom, qty: qty, unit: unitVenta, sub: sub, iva: iva, total: sub + iva, costoReal: p.cost * qty });
+        cart.push({ id: p.id, nom: p.nom, qty, netUnit, netTotal: netUnit * qty, costTotal: p.cost * qty });
         renderCart();
     }
 
     function renderCart() {
-        let sub = 0, iva = 0;
-        document.getElementById('cart-list').innerHTML = cart.map((item, idx) => {
-            sub += item.sub; iva += item.iva;
-            return `<div class="cart-item">
-                <div style="display:flex; justify-content:space-between;"><b>${item.nom}</b><button class="btn-danger" onclick="removeFromCart(${idx})">x</button></div>
-                <p style="margin:5px 0; font-size:12px;">${item.qty} un x $${item.unit.toFixed(2)} = $${item.sub.toFixed(2)}</p>
+        let t = 0;
+        document.getElementById('cart-items').innerHTML = cart.map((c, idx) => {
+            t += c.netTotal;
+            return `<div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;">
+                <span>${c.qty} x ${c.nom}</span> <b>$${c.netTotal.toFixed(2)}</b>
             </div>`;
-        }).join('') || "<p>Carrito vacío</p>";
-        
-        document.getElementById('cart-sub').innerText = sub.toFixed(2);
-        document.getElementById('cart-iva').innerText = iva.toFixed(2);
-        document.getElementById('cart-total').innerText = `$${(sub + iva).toFixed(2)}`;
+        }).join('');
+        document.getElementById('cart-total').innerText = `$${t.toFixed(2)}`;
     }
 
-    function removeFromCart(idx) { cart.splice(idx, 1); renderCart(); }
-
     function finalizeSale() {
-        if(cart.length === 0) return;
-        let tSub = 0, tIva = 0, tGanancia = 0, tItems = "";
+        if(!cart.length) return;
+        let isFact = document.getElementById('pos-fact').checked;
+        let tNet = 0; let tCost = 0; let itemsHtml = "";
 
-        cart.forEach(item => {
-            tSub += item.sub; tIva += item.iva; tGanancia += (item.sub - item.costoReal);
-            db.inv.find(x => x.id == item.id).stock -= item.qty;
-            tItems += `<tr><td>${item.qty}</td><td>${item.nom}</td><td align="right">$${item.unit.toFixed(2)}</td><td align="right">$${item.sub.toFixed(2)}</td></tr>`;
+        cart.forEach(c => {
+            tNet += c.netTotal;
+            tCost += c.costTotal;
+            let p = db.inv.find(x => x.id == c.id);
+            p.stock -= c.qty;
+            itemsHtml += `<tr><td>${c.qty}</td><td>${c.nom}</td><td align="right">$${c.netTotal.toFixed(2)}</td></tr>`;
         });
 
-        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo: 'VENTA', desc: 'Venta Caja', sub: tSub, iva: tIva, total: tSub + tIva, ganancia: tGanancia });
-        
-        document.getElementById('ticket-items').innerHTML = tItems;
-        document.getElementById('t-sub').innerText = tSub.toFixed(2);
-        document.getElementById('t-iva').innerText = tIva.toFixed(2);
-        document.getElementById('t-total').innerText = (tSub+tIva).toFixed(2);
-        document.getElementById('t-date').innerText = new Date().toLocaleString();
+        // Registrar Movimiento
+        db.mov.push({
+            fecha: new Date().toLocaleDateString(),
+            tipo: 'VENTA',
+            desc: 'Venta de Mostrador',
+            net: tNet,
+            sub: isFact ? getSubtotal(tNet) : tNet,
+            iva: isFact ? getIVA(tNet) : 0,
+            util: tNet - tCost
+        });
 
-        saveToCloud(); // Sincroniza la venta y el descuento de inventario
-        document.getElementById('ticket-preview').classList.remove('hidden');
-        document.getElementById('cart-container').classList.add('hidden');
+        // Llenar Ticket
+        document.getElementById('t-fecha').innerText = new Date().toLocaleString();
+        document.getElementById('t-body').innerHTML = itemsHtml;
+        document.getElementById('t-final-total').innerText = `TOTAL: $${tNet.toFixed(2)}`;
+        
+        if(isFact) {
+            document.getElementById('t-desglose').innerHTML = `Subtotal: $${getSubtotal(tNet).toFixed(2)}<br>IVA: $${getIVA(tNet).toFixed(2)}`;
+        } else {
+            document.getElementById('t-desglose').innerHTML = "";
+        }
+
+        document.getElementById('pos-ui').classList.add('hidden');
+        document.getElementById('ticket-view').classList.remove('hidden');
+        save();
+    }
+
+    function resetSale() {
         cart = [];
+        renderCart();
+        document.getElementById('pos-ui').classList.remove('hidden');
+        document.getElementById('ticket-view').classList.add('hidden');
     }
 
     function downloadTicket() {
         html2canvas(document.querySelector("#ticket-wrap")).then(canvas => {
-            let link = document.createElement('a'); link.download = `Ticket-DrinKar.png`; link.href = canvas.toDataURL(); link.click();
+            let a = document.createElement('a'); a.download = 'ticket.png'; a.href = canvas.toDataURL(); a.click();
         });
     }
 
-    // --- REPORTE FISCAL ---
-    function renderReports() {
-        let v = 0, g = 0, ivaCobrado = 0, ivaPagado = 0;
-        let html = [...db.mov].reverse().map(m => {
-            let badgeColor = m.tipo === 'VENTA' ? '#27ae60' : (m.tipo === 'COMPRA' ? '#8e44ad' : '#2980b9');
-            
-            if(m.tipo === 'VENTA') { 
-                v += m.sub; g += m.ganancia; ivaCobrado += m.iva; 
-            } else if (m.tipo === 'COMPRA' || m.tipo === 'GASTO') { 
-                ivaPagado += m.iva; 
+    // --- REPORTES ---
+    function renderRep() {
+        let util = 0; let html = "";
+        [...db.mov].reverse().forEach(m => {
+            if(m.tipo === 'VENTA') util += (m.util || 0);
+            html += `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.desc}</td><td>$${m.net.toFixed(2)}</td></tr>`;
+        });
+        document.getElementById('rep-utilidad').innerText = `$${util.toFixed(2)}`;
+        document.getElementById('rep-body').innerHTML = html;
+    }
+
+    // --- CONFIG ---
+    function saveSettings() {
+        db.cfg.pub = parseFloat(document.getElementById('cfg-pub').value);
+        db.cfg.com = parseFloat(document.getElementById('cfg-com').value);
+        save();
+        alert("Configuración guardada");
+    }
+
+    function hardReset() {
+        if(confirm("¿ESTÁS SEGURO? Se borrará todo de la nube.")) {
+            if(confirm("ÚLTIMA ADVERTENCIA: Esta acción no se puede deshacer.")) {
+                dbRef.set(defaultDB);
+                location.reload();
             }
-
-            return `<tr>
-                <td>${m.fecha}</td>
-                <td><span class="badge" style="background:${badgeColor}">${m.tipo}</span></td>
-                <td>${m.desc}</td>
-                <td>$${m.total.toFixed(2)}</td>
-                <td style="color:${m.ganancia > 0 ? 'var(--accent)' : '#555'}">$${m.ganancia.toFixed(2)}</td>
-            </tr>`;
-        }).join('');
-
-        document.getElementById('rep-v').innerText = `$${v.toFixed(2)}`;
-        document.getElementById('rep-g').innerText = `$${g.toFixed(2)}`;
-        document.getElementById('rep-list').innerHTML = html;
-
-        document.getElementById('rep-iva-cobrado').innerText = `$${ivaCobrado.toFixed(2)}`;
-        document.getElementById('rep-iva-pagado').innerText = `$${ivaPagado.toFixed(2)}`;
-        
-        let balance = ivaCobrado - ivaPagado;
-        let statusCard = document.getElementById('rep-iva-status-card');
-        let msg = document.getElementById('rep-iva-msg');
-        
-        document.getElementById('rep-iva-balance').innerText = `$${Math.abs(balance).toFixed(2)}`;
-
-        if(balance > 0) {
-            statusCard.style.borderColor = '#c0392b';
-            statusCard.style.color = '#c0392b';
-            msg.innerText = "⚠️ Tienes IVA por pagar al SAT";
-        } else if(balance < 0) {
-            statusCard.style.borderColor = 'var(--accent)';
-            statusCard.style.color = 'var(--accent)';
-            msg.innerText = "✅ Tienes saldo de IVA a favor";
-        } else {
-            statusCard.style.borderColor = '#555';
-            statusCard.style.color = 'white';
-            msg.innerText = "Balance en cero";
         }
     }
 </script>
