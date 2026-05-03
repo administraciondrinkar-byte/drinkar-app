@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Suite V4.3.1 - Conexión Segura</title>
+    <title>DrinKar Suite V4.4 - Ultimate Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -51,6 +51,12 @@
         .flex { display: flex; gap: 10px; }
         .flex > * { flex: 1; }
 
+        /* Estilo elegante para el Checkbox de Facturación */
+        .fancy-checkbox { display: flex; align-items: center; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid var(--primary); cursor: pointer; margin-bottom: 15px; transition: 0.3s;}
+        .fancy-checkbox:hover { background: #2a2a2a; }
+        .fancy-checkbox input { width: 24px; height: 24px; margin: 0 15px 0 0; accent-color: var(--accent); cursor: pointer; }
+        .fancy-checkbox span { font-size: 14px; font-weight: bold; color: white; }
+
         /* Ticket */
         #ticket-wrap { background: white; color: black; padding: 20px; width: 300px; margin: 20px auto; font-family: monospace; }
         #ticket-wrap * { color: black !important; }
@@ -65,7 +71,7 @@
 
 <div class="header">
     <h1 id="brand-name">DRIN<span style="color:var(--primary)">KAR</span></h1>
-    <small style="color:var(--text-muted)">V4.3.1 ENTERPRISE EDITION</small>
+    <small style="color:var(--text-muted)">V4.4 ULTIMATE EDITION</small>
 </div>
 
 <div class="nav-bar">
@@ -99,6 +105,11 @@
                 <tbody id="sim-list"></tbody>
             </table>
             <div id="sim-totals" style="text-align:right; padding-top:10px; border-top:1px solid var(--primary); margin-top:10px;"></div>
+            
+            <div class="flex" style="margin-top:15px;">
+                <button class="btn btn-info" onclick="printSimReport()">🖨️ Reporte</button>
+                <button class="btn btn-danger" onclick="clearSimReport()">🗑️ Vaciar</button>
+            </div>
         </div>
     </div>
 
@@ -125,7 +136,12 @@
                 <div><label>Cantidad</label><input type="number" id="buy-qty"></div>
                 <div><label>Costo Neto Unitario</label><input type="number" id="buy-cost"></div>
             </div>
-            <div class="flex" style="align-items:center;"><input type="checkbox" id="buy-fact" style="width:20px; margin:0"> <label style="margin:0">Facturado</label></div>
+            
+            <label class="fancy-checkbox">
+                <input type="checkbox" id="buy-fact">
+                <span>📑 Compra Facturada (Registra IVA)</span>
+            </label>
+
             <button class="btn btn-primary" onclick="executePurchase()">Finalizar Surtido</button>
         </div>
     </div>
@@ -145,7 +161,12 @@
                 <h3>Carrito</h3>
                 <div id="cart-list"></div>
                 <div style="margin-top:15px; border-top:1px solid #444; padding-top:10px;">
-                    <div class="flex" style="align-items:center; margin-bottom:10px;"><input type="checkbox" id="pos-fact" style="width:20px; margin:0"> <label style="margin:0">Venta Facturada</label></div>
+                    
+                    <label class="fancy-checkbox">
+                        <input type="checkbox" id="pos-fact">
+                        <span>📑 Venta Facturada (Registra IVA)</span>
+                    </label>
+
                     <h2 id="cart-total" style="text-align:right; color:var(--accent)">$0.00</h2>
                     <button class="btn btn-success" onclick="finalizeSale()">Cobrar y Generar Ticket</button>
                 </div>
@@ -169,21 +190,42 @@
     </div>
 
     <div id="view-rep" class="view hidden">
-        <div class="card"><label>Utilidad Total Acumulada</label><h2 id="rep-gain" style="color:var(--accent);">$0.00</h2></div>
+        <div class="flex">
+            <div class="card" style="margin-bottom: 10px;">
+                <label>Utilidad Neta</label>
+                <h2 id="rep-gain" style="color:var(--accent); margin:0;">$0.00</h2>
+            </div>
+            <div class="card" style="margin-bottom: 10px;">
+                <label>Balance IVA</label>
+                <h2 id="rep-iva-bal" style="margin:0;">$0.00</h2>
+                <small id="rep-iva-detail" style="font-size:10px; color:var(--text-muted)"></small>
+            </div>
+        </div>
+
         <div class="card">
             <h3>Movimientos</h3>
             <div style="overflow-x:auto;">
-                <table><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Total</th></tr></thead><tbody id="rep-list"></tbody></table>
+                <table>
+                    <thead>
+                        <tr><th>Fecha</th><th>Tipo</th><th>Detalle (Pzas)</th><th>Total</th><th>Fact</th></tr>
+                    </thead>
+                    <tbody id="rep-list"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <div id="view-cfg" class="view hidden">
         <div class="card">
-            <h3>Configuración de Márgenes</h3>
+            <h3>Configuración de Márgenes (%)</h3>
             <div class="flex">
-                <div><label>% Público</label><input type="number" id="cfg-pub" value="15"></div>
-                <div><label>% B2B</label><input type="number" id="cfg-com" value="13.5"></div>
+                <div><label>Público</label><input type="number" id="cfg-pub"></div>
+                <div><label>B2B</label><input type="number" id="cfg-com"></div>
+            </div>
+            <div class="flex">
+                <div><label>6+ Pzas</label><input type="number" id="cfg-m6"></div>
+                <div><label>12+ Pzas</label><input type="number" id="cfg-m12"></div>
+                <div><label>24+ Pzas</label><input type="number" id="cfg-m24"></div>
             </div>
             <button class="btn btn-primary" onclick="saveSettings()">Guardar Márgenes</button>
         </div>
@@ -207,7 +249,7 @@
 </div>
 
 <script>
-    // --- CREDENCIALES LIMPIAS ---
+    // --- CREDENCIALES ---
     const firebaseConfig = {
         apiKey: "AIzaSyC2OpCZLRUbZJB16pkglHxOK2YiVzqffKQ",
         authDomain: "drinkar-cc5ab.firebaseapp.com",
@@ -215,26 +257,26 @@
         projectId: "drinkar-cc5ab",
         storageBucket: "drinkar-cc5ab.firebasestorage.app",
         messagingSenderId: "546531961373",
-        appId: "1:546531961373:web:4d88f6bceb506d640df4f4",
-        measurementId: "G-PT6RL6GLZR"
+        appId: "1:546531961373:web:4d88f6bceb506d640df4f4"
     };
 
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('drinkar_cloud_v43');
 
     const defaultDB = {
-        inv: [],
-        mov: [],
-        sim: [],
-        cfg: { pub: 15, com: 13.5, colorP: '#630d16', colorBG: '#0a0a0a' }
+        inv: [], mov: [], sim: [],
+        cfg: { pub: 15, com: 13.5, m6: 12, m12: 10, m24: 8, colorP: '#630d16', colorBG: '#0a0a0a' }
     };
     let db = defaultDB;
     let cart = [];
 
-    // --- TIEMPO REAL CON MANEJO DE ERRORES ---
+    // --- TIEMPO REAL ---
     dbRef.on('value', (snap) => {
         db = snap.val() || defaultDB;
         if(!db.cfg) db.cfg = defaultDB.cfg;
+        // Compatibilidad hacia atrás para nuevos campos de margen
+        if(db.cfg.m6 === undefined) { db.cfg.m6 = 12; db.cfg.m12 = 10; db.cfg.m24 = 8; }
+        
         if(!db.sim) db.sim = [];
         if(!db.inv) db.inv = [];
         if(!db.mov) db.mov = [];
@@ -242,23 +284,6 @@
         document.getElementById('loading').style.display = 'none';
         applyTheme();
         refreshUI();
-    }, (error) => {
-        // AQUÍ ES DONDE ATRAPAMOS EL ERROR DE PERMISOS
-        console.error("Error de conexión Firebase:", error);
-        document.getElementById('spinner-icon').style.display = 'none';
-        document.getElementById('loading-text').innerHTML = `
-            <strong style="color:#e74c3c; font-size: 20px;">Error de Permisos ❌</strong><br><br>
-            La base de datos bloqueó la conexión.<br>
-            <small style="color:#888;">Motivo: ${error.message}</small><br><br>
-            <div style="background:#222; padding:15px; border-radius:10px; text-align:left; font-size:12px; color:white; display:inline-block;">
-                <b>Solución:</b><br>
-                1. Ve a tu consola de Firebase<br>
-                2. Entra a <b>Realtime Database</b><br>
-                3. Ve a la pestaña <b>Reglas (Rules)</b><br>
-                4. Cambia 'false' por 'true' en read y write.<br>
-                5. Haz clic en <b>Publicar</b> y recarga esta página.
-            </div>
-        `;
     });
 
     function sync() { dbRef.set(db); }
@@ -282,13 +307,16 @@
         let net = parseFloat(document.getElementById('master-net').value) || 0;
         let p = net * (1 + (db.cfg.pub/100));
         let b = net * (1 + (db.cfg.com/100));
+        let p6 = net * (1 + (db.cfg.m6/100));
+        let p12 = net * (1 + (db.cfg.m12/100));
+        let p24 = net * (1 + (db.cfg.m24/100));
         
         document.getElementById('master-results').innerHTML = `
             <div class="price-tag"><small>PÚBLICO</small><b>$${p.toFixed(2)}</b></div>
             <div class="price-tag"><small>B2B/COMERCIO</small><b>$${b.toFixed(2)}</b></div>
-            <div class="price-tag"><small>6+ PZAS (-3%)</small><b>$${(p*0.97).toFixed(2)}</b></div>
-            <div class="price-tag"><small>12+ PZAS (-5%)</small><b>$${(p*0.95).toFixed(2)}</b></div>
-            <div class="price-tag"><small>24+ PZAS (-8%)</small><b>$${(p*0.92).toFixed(2)}</b></div>
+            <div class="price-tag"><small>6+ PZAS</small><b>$${p6.toFixed(2)}</b></div>
+            <div class="price-tag"><small>12+ PZAS</small><b>$${p12.toFixed(2)}</b></div>
+            <div class="price-tag"><small>24+ PZAS</small><b>$${p24.toFixed(2)}</b></div>
         `;
     }
 
@@ -305,12 +333,26 @@
         let h = ""; let tn=0, ts=0, ti=0;
         db.sim.forEach((s, i) => {
             tn+=s.net; ts+=s.sub; ti+=s.iva;
-            h += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td><td><button onclick="delSim(${i})" style="color:red; background:none; border:none;">X</button></td></tr>`;
+            h += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td><td><button onclick="delSim(${i})" style="color:red; background:none; border:none; font-weight:bold;">X</button></td></tr>`;
         });
         document.getElementById('sim-list').innerHTML = h;
         document.getElementById('sim-totals').innerHTML = `<b>TOTAL NETO: $${tn.toFixed(2)}</b><br><small>Sub: $${ts.toFixed(2)} | IVA: $${ti.toFixed(2)}</small>`;
     }
     function delSim(i) { db.sim.splice(i,1); sync(); }
+    
+    function printSimReport() {
+        if(db.sim.length === 0) return alert("El simulador está vacío.");
+        let w = window.open('', '', 'width=800,height=600');
+        let t = "<h2>Reporte de Simulador de Factura DrinKar</h2><table border='1' style='width:100%; border-collapse:collapse; text-align:left;'><thead><tr><th>Neto</th><th>Subtotal</th><th>IVA</th></tr></thead><tbody>";
+        let tn=0, ts=0, ti=0;
+        db.sim.forEach(s => { tn+=s.net; ts+=s.sub; ti+=s.iva; t+= `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td></tr>`; });
+        w.document.write(t + `</tbody></table><h3>TOTALES -> Neto: $${tn.toFixed(2)} | Subtotal: $${ts.toFixed(2)} | IVA: $${ti.toFixed(2)}</h3>`);
+        w.print();
+    }
+    
+    function clearSimReport() {
+        if(confirm("¿Seguro que deseas limpiar la lista del simulador?")) { db.sim = []; sync(); }
+    }
 
     // --- INVENTARIO ---
     function addToInv() {
@@ -327,12 +369,20 @@
         let h = "";
         db.inv.forEach((p, i) => {
             let pub = p.cost * (1 + (db.cfg.pub/100));
+            let b2b = p.cost * (1 + (db.cfg.com/100));
+            let m6 = p.cost * (1 + (db.cfg.m6/100));
+            let m12 = p.cost * (1 + (db.cfg.m12/100));
+            let m24 = p.cost * (1 + (db.cfg.m24/100));
+
             h += `<div class="card">
                 <div class="flex"><b>${p.nom}</b> <span style="color:var(--accent)">STOCK: ${p.stock}</span></div>
                 <div class="price-grid">
-                    <div class="price-tag"><small>COSTO NETO</small><b>$${p.cost.toFixed(2)}</b></div>
+                    <div class="price-tag"><small>COSTO</small><b>$${p.cost.toFixed(2)}</b></div>
                     <div class="price-tag"><small>PÚBLICO</small><b>$${pub.toFixed(2)}</b></div>
-                    <div class="price-tag"><small>B2B</small><b>$${(p.cost*(1+db.cfg.com/100)).toFixed(2)}</b></div>
+                    <div class="price-tag"><small>B2B</small><b>$${b2b.toFixed(2)}</b></div>
+                    <div class="price-tag"><small>6+ PZAS</small><b>$${m6.toFixed(2)}</b></div>
+                    <div class="price-tag"><small>12+ PZAS</small><b>$${m12.toFixed(2)}</b></div>
+                    <div class="price-tag"><small>24+ PZAS</small><b>$${m24.toFixed(2)}</b></div>
                 </div>
                 <button onclick="delInv(${i})" class="btn-danger" style="margin-top:10px; padding:5px; font-size:10px;">Eliminar</button>
             </div>`;
@@ -366,11 +416,24 @@
         let c = parseFloat(document.getElementById('buy-cost').value);
         let f = document.getElementById('buy-fact').checked;
         let p = db.inv.find(x => x.id == id);
+        
         if(!p || isNaN(q)) return;
         p.stock += q;
         if(c) p.cost = c;
-        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'COMPRA', desc: `Surtido ${p.nom}`, total: (c||p.cost)*q });
+
+        let totalCompra = (c||p.cost)*q;
+        let ivaCalc = f ? (totalCompra - (totalCompra/1.16)) : 0;
+
+        db.mov.push({ 
+            fecha: new Date().toLocaleDateString(), 
+            tipo:'COMPRA', 
+            detalle: `${q} x ${p.nom}`, 
+            total: totalCompra,
+            facturado: f,
+            iva: ivaCalc
+        });
         sync();
+        document.getElementById('buy-qty').value = "";
         alert("Inventario Actualizado");
     }
 
@@ -399,17 +462,31 @@
         if(!cart.length) return;
         let fact = document.getElementById('pos-fact').checked;
         let tt = 0; let tc = 0; let h = "";
+        
+        let resumenDetalle = cart.map(c => `${c.q} x ${c.nom}`).join(' | ');
+
         cart.forEach(c => {
             tt+=c.total; tc+=c.cost;
             db.inv.find(x => x.id == c.id).stock -= c.q;
             h += `<tr><td>${c.q}</td><td>${c.nom}</td><td align="right">$${c.total.toFixed(2)}</td></tr>`;
         });
-        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'VENTA', desc: 'Venta Caja', total: tt, gain: tt-tc });
+
+        let ivaCalc = fact ? (tt - (tt/1.16)) : 0;
+
+        db.mov.push({ 
+            fecha: new Date().toLocaleDateString(), 
+            tipo:'VENTA', 
+            detalle: resumenDetalle, 
+            total: tt, 
+            gain: tt-tc,
+            facturado: fact,
+            iva: ivaCalc
+        });
         
         document.getElementById('t-fecha').innerText = new Date().toLocaleString();
         document.getElementById('t-items').innerHTML = h;
         document.getElementById('t-total-final').innerText = `TOTAL: $${tt.toFixed(2)}`;
-        document.getElementById('t-desglose').innerHTML = fact ? `Subtotal: $${(tt/1.16).toFixed(2)}<br>IVA: $${(tt-(tt/1.16)).toFixed(2)}` : "";
+        document.getElementById('t-desglose').innerHTML = fact ? `Subtotal: $${(tt/1.16).toFixed(2)}<br>IVA: $${ivaCalc.toFixed(2)}` : "";
         
         document.getElementById('pos-ui').classList.add('hidden');
         document.getElementById('ticket-view').classList.remove('hidden');
@@ -418,6 +495,8 @@
 
     function resetSale() {
         cart = []; renderCart();
+        document.getElementById('pos-price').value = "";
+        document.getElementById('pos-qty').value = "1";
         document.getElementById('pos-ui').classList.remove('hidden');
         document.getElementById('ticket-view').classList.add('hidden');
     }
@@ -430,34 +509,64 @@
 
     // --- REPORTES ---
     function renderRep() {
-        let g = 0; let h = "";
+        let g = 0, ivaFavor = 0, ivaContra = 0, h = "";
+        
         [...db.mov].reverse().forEach(m => {
-            if(m.tipo === 'VENTA') g += (m.gain || 0);
-            h += `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.desc}</td><td>$${m.total.toFixed(2)}</td></tr>`;
+            if(m.tipo === 'VENTA') {
+                g += (m.gain || 0);
+                if(m.facturado) ivaContra += (m.iva || 0); // Venta cobra IVA (en contra)
+            }
+            if(m.tipo === 'COMPRA' && m.facturado) {
+                ivaFavor += (m.iva || 0); // Compra paga IVA (a favor)
+            }
+
+            let textFact = m.facturado ? '<span style="color:var(--info); font-weight:bold;">SÍ</span>' : 'NO';
+            // Compatibilidad con reportes viejos (m.desc vs m.detalle)
+            let descStr = m.detalle ? m.detalle : (m.desc || '-');
+
+            h += `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${descStr}</td><td>$${m.total.toFixed(2)}</td><td>${textFact}</td></tr>`;
         });
+
+        let balanceIVA = ivaFavor - ivaContra;
+        
         document.getElementById('rep-gain').innerText = `$${g.toFixed(2)}`;
+        document.getElementById('rep-iva-bal').innerText = `$${balanceIVA.toFixed(2)}`;
+        document.getElementById('rep-iva-bal').style.color = balanceIVA >= 0 ? 'var(--accent)' : '#c0392b';
+        document.getElementById('rep-iva-detail').innerHTML = `A Favor (Compras): <b style="color:var(--accent)">$${ivaFavor.toFixed(2)}</b><br>Por Pagar (Ventas): <b style="color:#c0392b">$${ivaContra.toFixed(2)}</b>`;
+        
         document.getElementById('rep-list').innerHTML = h;
     }
 
     // --- CONFIG & THEME ---
     function saveSettings() {
-        db.cfg.pub = parseFloat(document.getElementById('cfg-pub').value);
-        db.cfg.com = parseFloat(document.getElementById('cfg-com').value);
-        sync(); alert("Márgenes guardados");
+        db.cfg.pub = parseFloat(document.getElementById('cfg-pub').value) || 0;
+        db.cfg.com = parseFloat(document.getElementById('cfg-com').value) || 0;
+        db.cfg.m6 = parseFloat(document.getElementById('cfg-m6').value) || 0;
+        db.cfg.m12 = parseFloat(document.getElementById('cfg-m12').value) || 0;
+        db.cfg.m24 = parseFloat(document.getElementById('cfg-m24').value) || 0;
+        sync(); alert("Márgenes guardados exitosamente.");
     }
 
     function saveTheme() {
         db.cfg.colorP = document.getElementById('cfg-color-p').value;
         db.cfg.colorBG = document.getElementById('cfg-color-bg').value;
-        sync(); alert("Colores aplicados");
+        sync(); alert("Colores aplicados.");
     }
 
     function applyTheme() {
         const r = document.querySelector(':root');
         r.style.setProperty('--primary', db.cfg.colorP);
         r.style.setProperty('--bg', db.cfg.colorBG);
+        
         document.getElementById('cfg-color-p').value = db.cfg.colorP;
         document.getElementById('cfg-color-bg').value = db.cfg.colorBG;
+        
+        // Sincronizar inputs numéricos de config
+        document.getElementById('cfg-pub').value = db.cfg.pub;
+        document.getElementById('cfg-com').value = db.cfg.com;
+        document.getElementById('cfg-m6').value = db.cfg.m6;
+        document.getElementById('cfg-m12').value = db.cfg.m12;
+        document.getElementById('cfg-m24').value = db.cfg.m24;
     }
 
     function hardReset() {
