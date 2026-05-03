@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Suite V4.3 - Full Logic</title>
+    <title>DrinKar Suite V4.3.1 - Conexión Segura</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -14,8 +14,8 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: background 0.3s; }
         
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align:center; padding: 20px;}
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;}
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .header { padding: 30px 20px; text-align: center; border-bottom: 2px solid var(--primary); }
@@ -59,13 +59,13 @@
 <body>
 
 <div id="loading">
-    <div class="spinner"></div>
-    <p>Conectando DrinKar Cloud...</p>
+    <div class="spinner" id="spinner-icon"></div>
+    <p id="loading-text">Conectando DrinKar Cloud...</p>
 </div>
 
 <div class="header">
     <h1 id="brand-name">DRIN<span style="color:var(--primary)">KAR</span></h1>
-    <small style="color:var(--text-muted)">V4.3 ENTERPRISE EDITION</small>
+    <small style="color:var(--text-muted)">V4.3.1 ENTERPRISE EDITION</small>
 </div>
 
 <div class="nav-bar">
@@ -207,17 +207,17 @@
 </div>
 
 <script>
-    // --- PEGA TUS CLAVES AQUÍ ---
+    // --- CREDENCIALES LIMPIAS ---
     const firebaseConfig = {
-  		apiKey: "AIzaSyC2OpCZLRUbZJB16pkglHxOK2YiVzqffKQ",
-  		authDomain: "drinkar-cc5ab.firebaseapp.com",
-  		databaseURL: "https://drinkar-cc5ab-default-rtdb.firebaseio.com",
-  		projectId: "drinkar-cc5ab",
-  		storageBucket: "drinkar-cc5ab.firebasestorage.app",
-  		messagingSenderId: "546531961373",
-  		appId: "1:546531961373:web:4d88f6bceb506d640df4f4",
-  		measurementId: "G-PT6RL6GLZR"
-	};
+        apiKey: "AIzaSyC2OpCZLRUbZJB16pkglHxOK2YiVzqffKQ",
+        authDomain: "drinkar-cc5ab.firebaseapp.com",
+        databaseURL: "https://drinkar-cc5ab-default-rtdb.firebaseio.com",
+        projectId: "drinkar-cc5ab",
+        storageBucket: "drinkar-cc5ab.firebasestorage.app",
+        messagingSenderId: "546531961373",
+        appId: "1:546531961373:web:4d88f6bceb506d640df4f4",
+        measurementId: "G-PT6RL6GLZR"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('drinkar_cloud_v43');
@@ -231,7 +231,7 @@
     let db = defaultDB;
     let cart = [];
 
-    // --- TIEMPO REAL ---
+    // --- TIEMPO REAL CON MANEJO DE ERRORES ---
     dbRef.on('value', (snap) => {
         db = snap.val() || defaultDB;
         if(!db.cfg) db.cfg = defaultDB.cfg;
@@ -242,6 +242,23 @@
         document.getElementById('loading').style.display = 'none';
         applyTheme();
         refreshUI();
+    }, (error) => {
+        // AQUÍ ES DONDE ATRAPAMOS EL ERROR DE PERMISOS
+        console.error("Error de conexión Firebase:", error);
+        document.getElementById('spinner-icon').style.display = 'none';
+        document.getElementById('loading-text').innerHTML = `
+            <strong style="color:#e74c3c; font-size: 20px;">Error de Permisos ❌</strong><br><br>
+            La base de datos bloqueó la conexión.<br>
+            <small style="color:#888;">Motivo: ${error.message}</small><br><br>
+            <div style="background:#222; padding:15px; border-radius:10px; text-align:left; font-size:12px; color:white; display:inline-block;">
+                <b>Solución:</b><br>
+                1. Ve a tu consola de Firebase<br>
+                2. Entra a <b>Realtime Database</b><br>
+                3. Ve a la pestaña <b>Reglas (Rules)</b><br>
+                4. Cambia 'false' por 'true' en read y write.<br>
+                5. Haz clic en <b>Publicar</b> y recarga esta página.
+            </div>
+        `;
     });
 
     function sync() { dbRef.set(db); }
