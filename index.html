@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Suite V4.2 - Net Logic</title>
+    <title>DrinKar Suite V4.3 - Full Logic</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -12,9 +12,8 @@
     <style>
         :root { --primary: #630d16; --bg: #0a0a0a; --card-bg: #151515; --text: #f8f9fa; --text-muted: #a0a0a0; --accent: #27ae60; --info: #2980b9; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: background 0.3s; }
         
-        /* Loading */
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -30,28 +29,20 @@
         .card { background: var(--card-bg); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid #222; }
         
         label { display: block; font-size: 11px; color: var(--primary); margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
-        input, select { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 10px; color: white; margin-bottom: 15px; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 10px; color: white; margin-bottom: 15px; font-size: 14px; outline: none; }
         
         .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
         .btn-success { background: var(--accent); color: white; }
         .btn-danger { background: #c0392b; color: white; }
-        .btn-print { background: var(--info); color: white; }
+        .btn-info { background: var(--info); color: white; }
 
-        /* Tables */
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { text-align: left; padding: 10px; border-bottom: 2px solid var(--primary); color: var(--primary); }
         td { padding: 10px; border-bottom: 1px solid #222; }
 
-        /* Ticket CSS Fixed */
-        #ticket-wrap { background: white; color: black; padding: 20px; width: 300px; margin: 20px auto; font-family: monospace; }
-        #ticket-wrap * { color: black !important; }
-        .ticket-table { width: 100%; border-top: 1px dashed black; }
-        .ticket-table th { border-bottom: 1px dashed black; color: black; }
-        .ticket-table td { border: none; padding: 2px 0; }
-
-        .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .price-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
         .price-tag { background: #111; padding: 8px; border-radius: 5px; border-left: 3px solid var(--primary); }
         .price-tag small { font-size: 9px; color: var(--text-muted); display: block; }
         .price-tag b { font-size: 13px; }
@@ -59,18 +50,22 @@
         .hidden { display: none; }
         .flex { display: flex; gap: 10px; }
         .flex > * { flex: 1; }
+
+        /* Ticket */
+        #ticket-wrap { background: white; color: black; padding: 20px; width: 300px; margin: 20px auto; font-family: monospace; }
+        #ticket-wrap * { color: black !important; }
     </style>
 </head>
 <body>
 
 <div id="loading">
     <div class="spinner"></div>
-    <p>Sincronizando DrinKar...</p>
+    <p>Conectando DrinKar Cloud...</p>
 </div>
 
 <div class="header">
-    <h1 style="margin:0">DRIN<span style="color:var(--primary)">KAR</span></h1>
-    <small style="color:var(--text-muted)">V4.2 NET ENTERPRISE</small>
+    <h1 id="brand-name">DRIN<span style="color:var(--primary)">KAR</span></h1>
+    <small style="color:var(--text-muted)">V4.3 ENTERPRISE EDITION</small>
 </div>
 
 <div class="nav-bar">
@@ -86,111 +81,99 @@
 
     <div id="view-calc" class="view">
         <div class="card">
-            <h3>Simulador de Facturación (Proveedor)</h3>
-            <p style="font-size: 11px; color:var(--text-muted)">Ingresa los montos NETOS para desglosar IVA y comparar con tu factura.</p>
+            <h3>Calculadora de Precios</h3>
+            <label>Costo Neto de Proveedor</label>
+            <input type="number" id="master-net" placeholder="0.00" oninput="runMasterCalc()">
+            <div id="master-results" class="price-grid"></div>
+        </div>
+
+        <div class="card">
+            <h3>Simulador de Factura Proveedor</h3>
             <div class="flex">
                 <div><label>Monto Neto</label><input type="number" id="sim-net" placeholder="0.00"></div>
                 <div><label>% IVA</label><input type="number" id="sim-iva-p" value="16"></div>
             </div>
             <button class="btn btn-outline" onclick="addToSim()">+ Agregar a la lista</button>
-            
-            <table style="margin-top:20px;">
+            <table style="margin-top:15px;">
                 <thead><tr><th>NETO</th><th>SUBTOTAL</th><th>IVA</th><th></th></tr></thead>
                 <tbody id="sim-list"></tbody>
             </table>
-            <div id="sim-total-box" style="text-align:right; margin-top:15px; border-top:1px solid var(--primary); padding-top:10px;"></div>
+            <div id="sim-totals" style="text-align:right; padding-top:10px; border-top:1px solid var(--primary); margin-top:10px;"></div>
         </div>
     </div>
 
     <div id="view-inv" class="view hidden">
         <div class="card">
-            <h3>Nuevo Producto</h3>
+            <h3>Agregar al Inventario</h3>
             <label>Nombre del Producto</label>
-            <input type="text" id="inv-nom" placeholder="Ej. Tequila 700ml">
+            <input type="text" id="inv-nom" placeholder="Ej. Whisky 750ml">
             <div class="flex">
-                <div><label>Costo Neto</label><input type="number" id="inv-cost" placeholder="Total Pagado"></div>
+                <div><label>Costo Neto</label><input type="number" id="inv-cost" placeholder="0.00"></div>
                 <div><label>Stock</label><input type="number" id="inv-qty" value="0"></div>
             </div>
-            <button class="btn btn-primary" onclick="addToInv()">Guardar en Nube</button>
+            <button class="btn btn-primary" onclick="addToInv()">Guardar en la Nube</button>
         </div>
-        <button class="btn btn-print" onclick="printInv()">🖨️ Generar Reporte de Precios</button>
+        <button class="btn btn-info" onclick="printInvReport()">🖨️ Generar Reporte de Inventario</button>
         <div id="inv-render"></div>
     </div>
 
     <div id="view-buy" class="view hidden">
         <div class="card">
-            <h3>Ingreso de Mercancía</h3>
+            <h3>Registrar Compra (Surtido)</h3>
             <label>Producto</label><select id="buy-prod"></select>
             <div class="flex">
                 <div><label>Cantidad</label><input type="number" id="buy-qty"></div>
-                <div><label>Costo Neto Unitario</label><input type="number" id="buy-cost" placeholder="Pagarás..."></div>
+                <div><label>Costo Neto Unitario</label><input type="number" id="buy-cost"></div>
             </div>
-            <div class="flex" style="align-items:center;">
-                <input type="checkbox" id="buy-fact" style="width:20px; margin:0"> 
-                <label style="margin:0">¿Viene Facturado?</label>
-            </div>
-            <button class="btn btn-primary" onclick="executePurchase()">Registrar Compra</button>
+            <div class="flex" style="align-items:center;"><input type="checkbox" id="buy-fact" style="width:20px; margin:0"> <label style="margin:0">Facturado</label></div>
+            <button class="btn btn-primary" onclick="executePurchase()">Finalizar Surtido</button>
         </div>
     </div>
 
     <div id="view-pos" class="view hidden">
         <div id="pos-ui">
             <div class="card">
-                <h3>Punto de Venta</h3>
+                <h3>Venta Directa</h3>
                 <label>Producto</label><select id="pos-prod"></select>
                 <div class="flex">
                     <div><label>Cantidad</label><input type="number" id="pos-qty" value="1"></div>
-                    <div><label>Precio Neto Venta</label><input type="number" id="pos-price" placeholder="Lo que cobrarás"></div>
+                    <div><label>Precio Neto Venta</label><input type="number" id="pos-price"></div>
                 </div>
-                <button class="btn btn-outline" onclick="addToCart()">+ Agregar al Carrito</button>
+                <button class="btn btn-outline" onclick="addToCart()">Agregar al Carrito</button>
             </div>
-
-            <div class="card" id="cart-box">
+            <div class="card" id="cart-container">
                 <h3>Carrito</h3>
-                <div id="cart-items"></div>
-                <div style="border-top:1px solid #333; margin-top:10px; padding-top:10px;">
-                    <div class="flex" style="align-items:center; margin-bottom:10px;">
-                        <input type="checkbox" id="pos-fact" style="width:20px; margin:0"> 
-                        <label style="margin:0">Venta Facturada (Desglosar en ticket)</label>
-                    </div>
-                    <h2 id="cart-total" style="text-align:right; margin:0; color:var(--accent)">$0.00</h2>
-                    <button class="btn btn-success" onclick="finalizeSale()">Finalizar y Ver Ticket</button>
+                <div id="cart-list"></div>
+                <div style="margin-top:15px; border-top:1px solid #444; padding-top:10px;">
+                    <div class="flex" style="align-items:center; margin-bottom:10px;"><input type="checkbox" id="pos-fact" style="width:20px; margin:0"> <label style="margin:0">Venta Facturada</label></div>
+                    <h2 id="cart-total" style="text-align:right; color:var(--accent)">$0.00</h2>
+                    <button class="btn btn-success" onclick="finalizeSale()">Cobrar y Generar Ticket</button>
                 </div>
             </div>
         </div>
 
         <div id="ticket-view" class="hidden">
             <div id="ticket-wrap">
-                <center>
-                    <h2 style="margin:0">DRINKAR</h2>
-                    <small id="t-fecha"></small>
-                </center>
-                <br>
-                <table class="ticket-table">
-                    <thead><tr><th>Cant</th><th>Concepto</th><th align="right">Total</th></tr></thead>
-                    <tbody id="t-body"></tbody>
+                <center><h2>DRINKAR</h2><p id="t-fecha" style="font-size:10px;"></p></center>
+                <table style="width:100%; font-size:11px; margin-top:10px;">
+                    <thead><tr><th align="left">Cant</th><th align="left">Item</th><th align="right">Total</th></tr></thead>
+                    <tbody id="t-items"></tbody>
                 </table>
-                <div id="t-desglose" style="text-align:right; margin-top:10px; font-size:12px;"></div>
-                <h3 id="t-final-total" style="text-align:right; border-top:1px solid black; padding-top:5px;"></h3>
-                <center style="margin-top:20px; font-size:10px;">¡Gracias por su preferencia!</center>
+                <div id="t-desglose" style="text-align:right; font-size:10px; margin-top:10px;"></div>
+                <h3 id="t-total-final" style="text-align:right; border-top:1px solid black; padding-top:5px;"></h3>
+                <center style="margin-top:20px; font-size:9px;">Gracias por su compra</center>
             </div>
-            <button class="btn btn-primary" onclick="downloadTicket()">Descargar Imagen</button>
+            <button class="btn btn-primary" onclick="downloadTicket()">Guardar Ticket (Imagen)</button>
             <button class="btn btn-outline" onclick="resetSale()">Nueva Venta</button>
         </div>
     </div>
 
     <div id="view-rep" class="view hidden">
+        <div class="card"><label>Utilidad Total Acumulada</label><h2 id="rep-gain" style="color:var(--accent);">$0.00</h2></div>
         <div class="card">
-            <label>Utilidad Estimada (Solo Ventas)</label>
-            <h2 id="rep-utilidad" style="color:var(--accent); margin:0">$0.00</h2>
-        </div>
-        <div class="card">
-            <h3>Historial</h3>
+            <h3>Movimientos</h3>
             <div style="overflow-x:auto;">
-                <table id="rep-table">
-                    <thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Neto</th></tr></thead>
-                    <tbody id="rep-body"></tbody>
-                </table>
+                <table><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Total</th></tr></thead><tbody id="rep-list"></tbody></table>
             </div>
         </div>
     </div>
@@ -200,22 +183,32 @@
             <h3>Configuración de Márgenes</h3>
             <div class="flex">
                 <div><label>% Público</label><input type="number" id="cfg-pub" value="15"></div>
-                <div><label>% B2B (Comercio)</label><input type="number" id="cfg-com" value="13.5"></div>
+                <div><label>% B2B</label><input type="number" id="cfg-com" value="13.5"></div>
             </div>
             <button class="btn btn-primary" onclick="saveSettings()">Guardar Márgenes</button>
         </div>
+
+        <div class="card">
+            <h3>Personalización Visual</h3>
+            <div class="flex">
+                <div><label>Color Principal</label><input type="color" id="cfg-color-p" value="#630d16"></div>
+                <div><label>Color Fondo</label><input type="color" id="cfg-color-bg" value="#0a0a0a"></div>
+            </div>
+            <button class="btn btn-info" onclick="saveTheme()">Aplicar Colores</button>
+        </div>
+
         <div class="card" style="border-color: #c0392b;">
-            <h3 style="color:#c0392b">Zona de Peligro</h3>
-            <p style="font-size:11px;">Esto borrará todos los productos, ventas y configuración de la nube.</p>
-            <button class="btn btn-danger" onclick="hardReset()">REINICIAR SISTEMA COMPLETO</button>
+            <h3 style="color:#c0392b">Reinicio de Sistema</h3>
+            <p style="font-size:10px;">Borra todos los datos (Productos, Ventas, Gastos).</p>
+            <button class="btn btn-danger" onclick="hardReset()">REINICIAR TODO</button>
         </div>
     </div>
 
 </div>
 
 <script>
-    // --- CONFIGURACIÓN FIREBASE (PEGA TUS CLAVES AQUÍ) ---
-	const firebaseConfig = {
+    // --- PEGA TUS CLAVES AQUÍ ---
+    const firebaseConfig = {
   		apiKey: "AIzaSyC2OpCZLRUbZJB16pkglHxOK2YiVzqffKQ",
   		authDomain: "drinkar-cc5ab.firebaseapp.com",
   		databaseURL: "https://drinkar-cc5ab-default-rtdb.firebaseio.com",
@@ -227,247 +220,171 @@
 	};
 
     firebase.initializeApp(firebaseConfig);
-    const dbRef = firebase.database().ref('drinkar_cloud');
+    const dbRef = firebase.database().ref('drinkar_cloud_v43');
 
     const defaultDB = {
         inv: [],
         mov: [],
-        cfg: { pub: 15, com: 13.5 },
-        sim: []
+        sim: [],
+        cfg: { pub: 15, com: 13.5, colorP: '#630d16', colorBG: '#0a0a0a' }
     };
     let db = defaultDB;
     let cart = [];
 
-    // --- ESCUCHA TIEMPO REAL ---
+    // --- TIEMPO REAL ---
     dbRef.on('value', (snap) => {
         db = snap.val() || defaultDB;
-        if (!db.cfg) db.cfg = defaultDB.cfg;
+        if(!db.cfg) db.cfg = defaultDB.cfg;
+        if(!db.sim) db.sim = [];
+        if(!db.inv) db.inv = [];
+        if(!db.mov) db.mov = [];
+        
         document.getElementById('loading').style.display = 'none';
-        refreshAll();
+        applyTheme();
+        refreshUI();
     });
 
-    function save() { dbRef.set(db); }
+    function sync() { dbRef.set(db); }
 
-    function refreshAll() {
+    function refreshUI() {
         renderInv();
         renderSim();
         renderRep();
         populateSelects();
     }
 
-    function showView(view, el) {
-        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-        document.getElementById('view-' + view).classList.remove('hidden');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    function showView(v, el) {
+        document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
+        document.getElementById('view-'+v).classList.remove('hidden');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         if(el) el.classList.add('active');
     }
 
-    // --- LÓGICA NETO ---
-    const getSubtotal = (net) => net / 1.16;
-    const getIVA = (net) => net - (net / 1.16);
+    // --- CALCULADORA MAESTRA ---
+    function runMasterCalc() {
+        let net = parseFloat(document.getElementById('master-net').value) || 0;
+        let p = net * (1 + (db.cfg.pub/100));
+        let b = net * (1 + (db.cfg.com/100));
+        
+        document.getElementById('master-results').innerHTML = `
+            <div class="price-tag"><small>PÚBLICO</small><b>$${p.toFixed(2)}</b></div>
+            <div class="price-tag"><small>B2B/COMERCIO</small><b>$${b.toFixed(2)}</b></div>
+            <div class="price-tag"><small>6+ PZAS (-3%)</small><b>$${(p*0.97).toFixed(2)}</b></div>
+            <div class="price-tag"><small>12+ PZAS (-5%)</small><b>$${(p*0.95).toFixed(2)}</b></div>
+            <div class="price-tag"><small>24+ PZAS (-8%)</small><b>$${(p*0.92).toFixed(2)}</b></div>
+        `;
+    }
 
     // --- SIMULADOR ---
     function addToSim() {
-        let net = parseFloat(document.getElementById('sim-net').value);
-        if(!net) return;
-        db.sim = db.sim || [];
-        db.sim.push({ net: net, sub: getSubtotal(net), iva: getIVA(net) });
-        save();
+        let val = parseFloat(document.getElementById('sim-net').value);
+        if(!val) return;
+        db.sim.push({ net: val, sub: val/1.16, iva: val - (val/1.16) });
+        sync();
         document.getElementById('sim-net').value = "";
     }
 
     function renderSim() {
-        let html = ""; let tNet = 0, tSub = 0, tIva = 0;
-        (db.sim || []).forEach((s, idx) => {
-            tNet += s.net; tSub += s.sub; tIva += s.iva;
-            html += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td>
-            <td><button onclick="delSim(${idx})" style="background:none; border:none; color:red;">X</button></td></tr>`;
+        let h = ""; let tn=0, ts=0, ti=0;
+        db.sim.forEach((s, i) => {
+            tn+=s.net; ts+=s.sub; ti+=s.iva;
+            h += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td><td><button onclick="delSim(${i})" style="color:red; background:none; border:none;">X</button></td></tr>`;
         });
-        document.getElementById('sim-list').innerHTML = html;
-        document.getElementById('sim-total-box').innerHTML = `<b>TOTAL NETO: $${tNet.toFixed(2)}</b><br><small>Subtotal: $${tSub.toFixed(2)} | IVA: $${tIva.toFixed(2)}</small>`;
+        document.getElementById('sim-list').innerHTML = h;
+        document.getElementById('sim-totals').innerHTML = `<b>TOTAL NETO: $${tn.toFixed(2)}</b><br><small>Sub: $${ts.toFixed(2)} | IVA: $${ti.toFixed(2)}</small>`;
     }
-    function delSim(i) { db.sim.splice(i,1); save(); }
+    function delSim(i) { db.sim.splice(i,1); sync(); }
 
     // --- INVENTARIO ---
     function addToInv() {
-        let nom = document.getElementById('inv-nom').value;
-        let cost = parseFloat(document.getElementById('inv-cost').value);
-        let qty = parseInt(document.getElementById('inv-qty').value);
-        if(!nom || isNaN(cost)) return alert("Completa datos");
-        
-        db.inv.push({ id: Date.now(), nom, cost, stock: qty });
-        save();
-        document.getElementById('inv-nom').value = "";
-        document.getElementById('inv-cost').value = "";
+        let n = document.getElementById('inv-nom').value;
+        let c = parseFloat(document.getElementById('inv-cost').value);
+        let q = parseInt(document.getElementById('inv-qty').value) || 0;
+        if(!n || isNaN(c)) return alert("Faltan datos");
+        db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
+        sync();
+        document.getElementById('inv-nom').value=""; document.getElementById('inv-cost').value="";
     }
 
     function renderInv() {
-        let html = "";
-        db.inv.forEach((p, idx) => {
+        let h = "";
+        db.inv.forEach((p, i) => {
             let pub = p.cost * (1 + (db.cfg.pub/100));
-            let b2b = p.cost * (1 + (db.cfg.com/100));
-            html += `<div class="card">
+            h += `<div class="card">
                 <div class="flex"><b>${p.nom}</b> <span style="color:var(--accent)">STOCK: ${p.stock}</span></div>
                 <div class="price-grid">
                     <div class="price-tag"><small>COSTO NETO</small><b>$${p.cost.toFixed(2)}</b></div>
-                    <div class="price-tag"><small>PÚBLICO (+${db.cfg.pub}%)</small><b>$${pub.toFixed(2)}</b></div>
-                    <div class="price-tag"><small>B2B/COMERCIO</small><b>$${b2b.toFixed(2)}</b></div>
-                    <div class="price-tag"><small>6+ PIEZAS (-3%)</small><b>$${(pub * 0.97).toFixed(2)}</b></div>
+                    <div class="price-tag"><small>PÚBLICO</small><b>$${pub.toFixed(2)}</b></div>
+                    <div class="price-tag"><small>B2B</small><b>$${(p.cost*(1+db.cfg.com/100)).toFixed(2)}</b></div>
                 </div>
-                <button class="btn-danger" style="padding:5px; margin-top:10px; font-size:10px;" onclick="delInv(${idx})">Eliminar</button>
+                <button onclick="delInv(${i})" class="btn-danger" style="margin-top:10px; padding:5px; font-size:10px;">Eliminar</button>
             </div>`;
         });
-        document.getElementById('inv-render').innerHTML = html;
+        document.getElementById('inv-render').innerHTML = h;
     }
-    function delInv(i) { if(confirm("¿Borrar?")) { db.inv.splice(i,1); save(); } }
+    function delInv(i) { if(confirm("¿Borrar?")) { db.inv.splice(i,1); sync(); } }
 
-    function printInv() {
-        let win = window.open('', '', 'height=700,width=900');
-        let table = "<h2>Catálogo de Precios DrinKar</h2><table border='1' style='width:100%; border-collapse:collapse;'><thead><tr><th>Producto</th><th>Público</th><th>6+ Pzas</th><th>B2B</th></tr></thead><tbody>";
+    function printInvReport() {
+        let w = window.open('', '', 'width=800,height=600');
+        let t = "<h2>Reporte de Inventario DrinKar</h2><table border='1' style='width:100%; border-collapse:collapse;'><thead><tr><th>Producto</th><th>Existencia</th><th>Costo Neto</th><th>Valor Total</th></tr></thead><tbody>";
+        let totalVal = 0;
         db.inv.forEach(p => {
-            let pub = p.cost * (1 + (db.cfg.pub/100));
-            table += `<tr><td>${p.nom}</td><td>$${pub.toFixed(2)}</td><td>$${(pub*0.97).toFixed(2)}</td><td>$${(p.cost*(1+(db.cfg.com/100))).toFixed(2)}</td></tr>`;
+            totalVal += (p.cost * p.stock);
+            t += `<tr><td>${p.nom}</td><td>${p.stock}</td><td>$${p.cost.toFixed(2)}</td><td>$${(p.cost*p.stock).toFixed(2)}</td></tr>`;
         });
-        win.document.write(table + "</tbody></table>");
-        win.print();
+        w.document.write(t + `</tbody></table><h3>Valor Total del Inventario: $${totalVal.toFixed(2)}</h3>`);
+        w.print();
     }
 
-    // --- COMPRA ---
+    // --- COMPRA / POS SELECTS ---
     function populateSelects() {
-        let options = db.inv.map(p => `<option value="${p.id}">${p.nom}</option>`).join('');
-        document.getElementById('buy-prod').innerHTML = options;
-        document.getElementById('pos-prod').innerHTML = options;
+        let op = db.inv.map(p => `<option value="${p.id}">${p.nom} (${p.stock})</option>`).join('');
+        document.getElementById('buy-prod').innerHTML = op;
+        document.getElementById('pos-prod').innerHTML = op;
     }
 
     function executePurchase() {
         let id = document.getElementById('buy-prod').value;
-        let qty = parseInt(document.getElementById('buy-qty').value);
-        let net = parseFloat(document.getElementById('buy-cost').value);
-        let fact = document.getElementById('buy-fact').checked;
+        let q = parseInt(document.getElementById('buy-qty').value);
+        let c = parseFloat(document.getElementById('buy-cost').value);
+        let f = document.getElementById('buy-fact').checked;
         let p = db.inv.find(x => x.id == id);
-        if(!p || isNaN(qty)) return;
-
-        p.stock += qty;
-        if(net) p.cost = net;
-        
-        db.mov.push({
-            fecha: new Date().toLocaleDateString(),
-            tipo: 'COMPRA',
-            desc: `Surtido: ${p.nom} (x${qty})`,
-            net: net * qty,
-            sub: fact ? getSubtotal(net * qty) : net * qty,
-            iva: fact ? getIVA(net * qty) : 0
-        });
-        save();
-        alert("Surtido exitoso");
+        if(!p || isNaN(q)) return;
+        p.stock += q;
+        if(c) p.cost = c;
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'COMPRA', desc: `Surtido ${p.nom}`, total: (c||p.cost)*q });
+        sync();
+        alert("Inventario Actualizado");
     }
 
-    // --- POS ---
+    // --- VENTAS ---
     function addToCart() {
         let id = document.getElementById('pos-prod').value;
-        let qty = parseInt(document.getElementById('pos-qty').value);
-        let netUnit = parseFloat(document.getElementById('pos-price').value);
+        let q = parseInt(document.getElementById('pos-qty').value);
+        let pr = parseFloat(document.getElementById('pos-price').value);
         let p = db.inv.find(x => x.id == id);
-
-        if(!p || isNaN(netUnit)) return alert("Ingresa precio de venta");
-        if(p.stock < qty) return alert("Sin stock suficiente");
-
-        cart.push({ id: p.id, nom: p.nom, qty, netUnit, netTotal: netUnit * qty, costTotal: p.cost * qty });
+        if(!p || isNaN(pr)) return alert("Ingresa precio venta");
+        if(p.stock < q) return alert("Sin stock suficiente");
+        cart.push({ id: p.id, nom: p.nom, q, pr, total: pr*q, cost: p.cost*q });
         renderCart();
     }
 
     function renderCart() {
         let t = 0;
-        document.getElementById('cart-items').innerHTML = cart.map((c, idx) => {
-            t += c.netTotal;
-            return `<div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;">
-                <span>${c.qty} x ${c.nom}</span> <b>$${c.netTotal.toFixed(2)}</b>
-            </div>`;
+        document.getElementById('cart-list').innerHTML = cart.map(c => {
+            t+=c.total;
+            return `<div class="flex"><span>${c.q} x ${c.nom}</span> <b>$${c.total.toFixed(2)}</b></div>`;
         }).join('');
         document.getElementById('cart-total').innerText = `$${t.toFixed(2)}`;
     }
 
     function finalizeSale() {
         if(!cart.length) return;
-        let isFact = document.getElementById('pos-fact').checked;
-        let tNet = 0; let tCost = 0; let itemsHtml = "";
-
+        let fact = document.getElementById('pos-fact').checked;
+        let tt = 0; let tc = 0; let h = "";
         cart.forEach(c => {
-            tNet += c.netTotal;
-            tCost += c.costTotal;
-            let p = db.inv.find(x => x.id == c.id);
-            p.stock -= c.qty;
-            itemsHtml += `<tr><td>${c.qty}</td><td>${c.nom}</td><td align="right">$${c.netTotal.toFixed(2)}</td></tr>`;
+            tt+=c.total; tc+=c.cost;
+            db.inv.find(x => x.id == c.id).stock -= c.q;
+            h += `<tr><td>${c.q}</td><td>${c.nom}</td><td align="right">$${c.total.toFixed(2)}</td></tr>`;
         });
-
-        // Registrar Movimiento
-        db.mov.push({
-            fecha: new Date().toLocaleDateString(),
-            tipo: 'VENTA',
-            desc: 'Venta de Mostrador',
-            net: tNet,
-            sub: isFact ? getSubtotal(tNet) : tNet,
-            iva: isFact ? getIVA(tNet) : 0,
-            util: tNet - tCost
-        });
-
-        // Llenar Ticket
-        document.getElementById('t-fecha').innerText = new Date().toLocaleString();
-        document.getElementById('t-body').innerHTML = itemsHtml;
-        document.getElementById('t-final-total').innerText = `TOTAL: $${tNet.toFixed(2)}`;
-        
-        if(isFact) {
-            document.getElementById('t-desglose').innerHTML = `Subtotal: $${getSubtotal(tNet).toFixed(2)}<br>IVA: $${getIVA(tNet).toFixed(2)}`;
-        } else {
-            document.getElementById('t-desglose').innerHTML = "";
-        }
-
-        document.getElementById('pos-ui').classList.add('hidden');
-        document.getElementById('ticket-view').classList.remove('hidden');
-        save();
-    }
-
-    function resetSale() {
-        cart = [];
-        renderCart();
-        document.getElementById('pos-ui').classList.remove('hidden');
-        document.getElementById('ticket-view').classList.add('hidden');
-    }
-
-    function downloadTicket() {
-        html2canvas(document.querySelector("#ticket-wrap")).then(canvas => {
-            let a = document.createElement('a'); a.download = 'ticket.png'; a.href = canvas.toDataURL(); a.click();
-        });
-    }
-
-    // --- REPORTES ---
-    function renderRep() {
-        let util = 0; let html = "";
-        [...db.mov].reverse().forEach(m => {
-            if(m.tipo === 'VENTA') util += (m.util || 0);
-            html += `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.desc}</td><td>$${m.net.toFixed(2)}</td></tr>`;
-        });
-        document.getElementById('rep-utilidad').innerText = `$${util.toFixed(2)}`;
-        document.getElementById('rep-body').innerHTML = html;
-    }
-
-    // --- CONFIG ---
-    function saveSettings() {
-        db.cfg.pub = parseFloat(document.getElementById('cfg-pub').value);
-        db.cfg.com = parseFloat(document.getElementById('cfg-com').value);
-        save();
-        alert("Configuración guardada");
-    }
-
-    function hardReset() {
-        if(confirm("¿ESTÁS SEGURO? Se borrará todo de la nube.")) {
-            if(confirm("ÚLTIMA ADVERTENCIA: Esta acción no se puede deshacer.")) {
-                dbRef.set(defaultDB);
-                location.reload();
-            }
-        }
-    }
-</script>
-
-</body>
-</html>
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'VENTA', desc: 'Venta Caja', total: tt, gain: tt-
