@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Suite V4.6 - Enterprise</title>
+    <title>DrinKar Suite V4.7 - Enterprise Elite</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -69,7 +69,7 @@
 
 <div class="header">
     <h1 id="brand-name">DRIN<span style="color:var(--primary)">KAR</span></h1>
-    <small style="color:var(--text-muted)">V4.6 ENTERPRISE EDITION</small>
+    <small style="color:var(--text-muted)">V4.7 ENTERPRISE EDITION</small>
 </div>
 
 <div class="nav-bar">
@@ -114,18 +114,18 @@
 
     <div id="view-quote" class="view hidden">
         <div class="card">
-            <h3>Generador de Cotizaciones Formales</h3>
-            <label>Datos del Cliente / Proyecto (Opcional)</label>
+            <h3>Cotizaciones Multiproducto</h3>
+            <label>Datos del Cliente / Proyecto</label>
             <input type="text" id="quote-name" placeholder="Ej. Boda 200 personas, Evento Corporativo...">
             
             <div style="border: 1px solid #333; padding: 15px; border-radius: 10px; margin-top: 15px; background: #111;">
-                <h4 style="margin: 0 0 10px 0; color: var(--primary);">Agregar Producto a Cotizar</h4>
-                <label>Nombre del Producto / Concepto</label>
+                <h4 style="margin: 0 0 10px 0; color: var(--primary);">Agregar Producto</h4>
+                <label>Nombre del Producto</label>
                 <input type="text" id="quote-item-name" placeholder="Ej. Tequila Don Julio 70">
                 
                 <div class="flex">
                     <div><label>Costo Neto Unitario</label><input type="number" id="quote-item-net" placeholder="0.00"></div>
-                    <div><label>Cant. (Opcional)</label><input type="number" id="quote-item-qty" value="1"></div>
+                    <div><label>Cantidad</label><input type="number" id="quote-item-qty" value="1"></div>
                 </div>
                 
                 <button class="btn btn-outline" onclick="addToQuote()">+ Agregar a la Cotización</button>
@@ -135,11 +135,11 @@
 
             <label class="fancy-checkbox" style="margin-top: 20px;">
                 <input type="checkbox" id="quote-b2b">
-                <span>🏢 Incluir columna de precio B2B / Aliados</span>
+                <span>🏢 Solo Precio Público y B2B (Modo Comercial)</span>
             </label>
             
             <div class="flex" style="margin-top: 15px;">
-                <button class="btn btn-info" onclick="printQuoteReport()">🖨️ Generar Documento</button>
+                <button class="btn btn-info" onclick="printQuoteReport()">🖨️ Generar Documento Formal</button>
                 <button class="btn btn-danger" onclick="clearQuote()">🗑️ Vaciar</button>
             </div>
         </div>
@@ -301,7 +301,7 @@
     };
     let db = defaultDB;
     let cart = [];
-    let quoteCart = []; // Nuevo array para el cotizador
+    let quoteCart = [];
 
     // --- TIEMPO REAL ---
     dbRef.on('value', (snap) => {
@@ -311,21 +311,13 @@
         if(!db.sim) db.sim = [];
         if(!db.inv) db.inv = [];
         if(!db.mov) db.mov = [];
-        
         document.getElementById('loading').style.display = 'none';
         applyTheme();
         refreshUI();
     });
 
     function sync() { dbRef.set(db); }
-
-    function refreshUI() {
-        renderInv();
-        renderSim();
-        renderRep();
-        populateSelects();
-    }
-
+    function refreshUI() { renderInv(); renderSim(); renderRep(); populateSelects(); }
     function showView(v, el) {
         document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
         document.getElementById('view-'+v).classList.remove('hidden');
@@ -351,12 +343,12 @@
         `;
     }
 
-    // --- COTIZADOR FORMAL ---
+    // --- COTIZADOR MULTIPRODUCTO ---
     function addToQuote() {
         let n = document.getElementById('quote-item-name').value;
         let c = parseFloat(document.getElementById('quote-item-net').value);
         let q = parseInt(document.getElementById('quote-item-qty').value) || 1;
-        if(!n || isNaN(c)) return alert("Agrega el nombre y el costo neto unitario.");
+        if(!n || isNaN(c)) return alert("Faltan datos del producto.");
         quoteCart.push({nom: n, net: c, qty: q});
         renderQuote();
         document.getElementById('quote-item-name').value = '';
@@ -368,94 +360,73 @@
         let h = "";
         quoteCart.forEach((item, i) => {
             h += `<div class="flex" style="justify-content:space-between; align-items:center; font-size:12px; margin-bottom:8px; background:#1a1a1a; padding:10px; border-radius:5px; border-left: 3px solid var(--primary);">
-                    <span><b>${item.qty}x</b> ${item.nom} <br><small style="color:var(--text-muted)">Costo: $${item.net.toFixed(2)}</small></span>
-                    <button onclick="quoteCart.splice(${i},1); renderQuote()" style="background:#c0392b; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">X</button>
+                    <span><b>${item.qty}x</b> ${item.nom} <small>($${item.net.toFixed(2)})</small></span>
+                    <button onclick="quoteCart.splice(${i},1); renderQuote()" style="background:#c0392b; color:white; border:none; padding:5px; border-radius:5px; cursor:pointer;">X</button>
                   </div>`;
         });
         document.getElementById('quote-list').innerHTML = h;
     }
 
-    function clearQuote() {
-        if(confirm("¿Seguro que deseas vaciar la cotización actual?")) { quoteCart = []; renderQuote(); }
-    }
+    function clearQuote() { if(confirm("¿Vaciar cotización?")) { quoteCart = []; renderQuote(); } }
 
     function printQuoteReport() {
-        if(quoteCart.length === 0) return alert("Agrega al menos un producto a la cotización.");
-        
-        let name = document.getElementById('quote-name').value || "Cotización General";
+        if(quoteCart.length === 0) return alert("Cotización vacía.");
+        let name = document.getElementById('quote-name').value || "Cliente General";
         let incB2B = document.getElementById('quote-b2b').checked;
         let date = new Date().toLocaleDateString();
-
-        let w = window.open('', '', 'width=900,height=700');
+        let w = window.open('', '', 'width=1000,height=800');
         
+        let headerRow = incB2B ? 
+            `<tr><th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc;">Producto / Concepto</th>
+                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Precio Público</th>
+                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Precio B2B / Aliados</th></tr>` :
+            `<tr><th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc;">Producto / Concepto</th>
+                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Público (1-5)</th>
+                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Medio Mayoreo (6+)</th>
+                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Mayoreo (12+)</th>
+                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Gran Mayoreo (24+)</th></tr>`;
+
         let rows = "";
         quoteCart.forEach(item => {
             let p = item.net * (1 + (db.cfg.pub/100));
-            let p6 = item.net * (1 + (db.cfg.m6/100));
-            let p12 = item.net * (1 + (db.cfg.m12/100));
-            let p24 = item.net * (1 + (db.cfg.m24/100));
-            let pb2b = item.net * (1 + (db.cfg.com/100));
-
-            rows += `
-                <tr>
-                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">${item.qty}x <b>${item.nom}</b></td>
-                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align:center;">$${p.toFixed(2)}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align:center;">$${p6.toFixed(2)}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align:center;">$${p12.toFixed(2)}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align:center;">$${p24.toFixed(2)}</td>
-                    ${incB2B ? `<td style="padding: 12px; border-bottom: 1px solid #ddd; text-align:center; font-weight:bold; color:#630d16;">$${pb2b.toFixed(2)}</td>` : ''}
-                </tr>
-            `;
+            if(incB2B) {
+                let pb2b = item.net * (1 + (db.cfg.com/100));
+                rows += `<tr><td style="padding:12px; border-bottom:1px solid #ddd;">${item.qty}x <b>${item.nom}</b></td>
+                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center;">$${p.toFixed(2)}</td>
+                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center; font-weight:bold; color:#630d16;">$${pb2b.toFixed(2)}</td></tr>`;
+            } else {
+                rows += `<tr><td style="padding:12px; border-bottom:1px solid #ddd;">${item.qty}x <b>${item.nom}</b></td>
+                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center;">$${p.toFixed(2)}</td>
+                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center;">$${(item.net*(1+db.cfg.m6/100)).toFixed(2)}</td>
+                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center;">$${(item.net*(1+db.cfg.m12/100)).toFixed(2)}</td>
+                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center;">$${(item.net*(1+db.cfg.m24/100)).toFixed(2)}</td></tr>`;
+            }
         });
 
-        let b2bHeader = incB2B ? `<th style="padding: 12px; background-color: #f8f9fa; text-align:center; border-bottom: 2px solid #ccc;">Precio B2B / Aliado</th>` : '';
-
-        // El logo está aquí configurado como drinkar_ofi-05.png
         let t = `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 900px; margin:auto;">
-                <table style="width: 100%; border-bottom: 3px solid #630d16; padding-bottom: 20px; margin-bottom: 30px;">
+            <div style="font-family: Arial; padding: 40px; color: #333; max-width: 950px; margin:auto;">
+                <table style="width: 100%; border-bottom: 4px solid #630d16; padding-bottom: 20px; margin-bottom: 30px;">
                     <tr>
-                        <td style="width: 25%; vertical-align: middle;">
-                            <img src="drinkar_ofi-05.png" alt="DrinKar Logo" style="max-width: 140px; height: auto;">
+                        <td style="width: 35%; vertical-align: middle;">
+                            <img src="drinkar_ofi-05.png" alt="DrinKar Logo" style="max-width: 220px; height: auto;">
                         </td>
-                        <td style="width: 75%; text-align: right; vertical-align: middle;">
-                            <h1 style="color: #630d16; margin: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 1px;">Propuesta Comercial</h1>
-                            <p style="margin: 8px 0 0 0; font-size: 15px; color: #555;">Fecha de emisión: <b>${date}</b></p>
-                            <p style="margin: 5px 0 0 0; font-size: 15px; color: #555;">Atención a: <b style="color:#000;">${name}</b></p>
+                        <td style="width: 65%; text-align: right; vertical-align: middle;">
+                            <h1 style="color: #630d16; margin: 0; font-size: 32px; text-transform: uppercase;">Propuesta Comercial</h1>
+                            <p style="margin: 10px 0 0 0; font-size: 16px;">Fecha: <b>${date}</b></p>
+                            <p style="margin: 5px 0 0 0; font-size: 16px;">Atención a: <b>${name}</b></p>
                         </td>
                     </tr>
                 </table>
-                
-                <p style="font-size: 15px; line-height: 1.6; color:#444;">Estimado cliente, a continuación presentamos la cotización solicitada con las distintas escalas de volumen disponibles para su consideración:</p>
-
-                <table style='width:100%; border-collapse:collapse; margin-top: 30px; font-size: 14px; box-shadow: 0 0 10px rgba(0,0,0,0.05);'>
-                    <thead>
-                        <tr>
-                            <th style="padding: 12px; background-color: #f8f9fa; text-align:left; border-bottom: 2px solid #ccc;">Producto / Concepto</th>
-                            <th style="padding: 12px; background-color: #f8f9fa; text-align:center; border-bottom: 2px solid #ccc;">Público (1-5)</th>
-                            <th style="padding: 12px; background-color: #f8f9fa; text-align:center; border-bottom: 2px solid #ccc;">Medio Mayoreo (6+)</th>
-                            <th style="padding: 12px; background-color: #f8f9fa; text-align:center; border-bottom: 2px solid #ccc;">Mayoreo (12+)</th>
-                            <th style="padding: 12px; background-color: #f8f9fa; text-align:center; border-bottom: 2px solid #ccc;">Gran Mayoreo (24+)</th>
-                            ${b2bHeader}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rows}
-                    </tbody>
+                <table style='width:100%; border-collapse:collapse; font-size: 14px;'>
+                    <thead>${headerRow}</thead>
+                    <tbody>${rows}</tbody>
                 </table>
-                
-                <div style="margin-top: 60px; font-size: 12px; color: #777; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
-                    <p style="margin: 4px 0;">* Los precios reflejados en este documento están expresados en Moneda Nacional (MXN) y pueden estar sujetos a cambios sin previo aviso.</p>
-                    <p style="margin: 4px 0;">* Cotización oficial generada por el sistema <b>DrinKar Suite Enterprise</b>.</p>
+                <div style="margin-top: 50px; font-size: 12px; color: #666; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+                    <p>* Precios en MXN sujetos a cambio sin previo aviso. Generado por DrinKar Suite Enterprise.</p>
                 </div>
-            </div>
-        `;
-        
-        w.document.write(t);
-        w.document.close();
-        
-        // Retraso para que la imagen cargue antes de lanzar la ventana de impresión
-        setTimeout(() => { w.print(); }, 800); 
+            </div>`;
+        w.document.write(t); w.document.close();
+        setTimeout(() => { w.print(); }, 800);
     }
 
     // --- SIMULADOR ---
@@ -463,64 +434,43 @@
         let val = parseFloat(document.getElementById('sim-net').value);
         if(!val) return;
         db.sim.push({ net: val, sub: val/1.16, iva: val - (val/1.16) });
-        sync();
-        document.getElementById('sim-net').value = "";
+        sync(); document.getElementById('sim-net').value = "";
     }
-
     function renderSim() {
         let h = ""; let tn=0, ts=0, ti=0;
         db.sim.forEach((s, i) => {
             tn+=s.net; ts+=s.sub; ti+=s.iva;
-            h += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td><td><button onclick="delSim(${i})" style="color:red; background:none; border:none; font-weight:bold;">X</button></td></tr>`;
+            h += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td><td><button onclick="delSim(${i})" style="color:red; background:none; border:none;">X</button></td></tr>`;
         });
         document.getElementById('sim-list').innerHTML = h;
         document.getElementById('sim-totals').innerHTML = `<b>TOTAL NETO: $${tn.toFixed(2)}</b><br><small>Sub: $${ts.toFixed(2)} | IVA: $${ti.toFixed(2)}</small>`;
     }
     function delSim(i) { db.sim.splice(i,1); sync(); }
-    
     function printSimReport() {
-        if(db.sim.length === 0) return alert("El simulador está vacío.");
         let w = window.open('', '', 'width=800,height=600');
-        let t = "<h2>Reporte de Simulador de Factura DrinKar</h2><table border='1' style='width:100%; border-collapse:collapse; text-align:left;'><thead><tr><th>Neto</th><th>Subtotal</th><th>IVA</th></tr></thead><tbody>";
+        let t = "<h2>Simulador Factura DrinKar</h2><table border='1' style='width:100%; border-collapse:collapse;'><thead><tr><th>Neto</th><th>Subtotal</th><th>IVA</th></tr></thead><tbody>";
         let tn=0, ts=0, ti=0;
         db.sim.forEach(s => { tn+=s.net; ts+=s.sub; ti+=s.iva; t+= `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td></tr>`; });
-        w.document.write(t + `</tbody></table><h3>TOTALES -> Neto: $${tn.toFixed(2)} | Subtotal: $${ts.toFixed(2)} | IVA: $${ti.toFixed(2)}</h3>`);
-        w.print();
+        w.document.write(t + `</tbody></table><h3>TOTAL: $${tn.toFixed(2)}</h3>`); w.print();
     }
-    
-    function clearSimReport() {
-        if(confirm("¿Seguro que deseas limpiar la lista del simulador?")) { db.sim = []; sync(); }
-    }
+    function clearSimReport() { if(confirm("¿Vaciar?")) { db.sim = []; sync(); } }
 
     // --- INVENTARIO ---
     function addToInv() {
-        let n = document.getElementById('inv-nom').value;
-        let c = parseFloat(document.getElementById('inv-cost').value);
-        let q = parseInt(document.getElementById('inv-qty').value) || 0;
-        if(!n || isNaN(c)) return alert("Faltan datos");
+        let n = document.getElementById('inv-nom').value, c = parseFloat(document.getElementById('inv-cost').value), q = parseInt(document.getElementById('inv-qty').value) || 0;
+        if(!n || isNaN(c)) return alert("Faltan datos.");
         db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
-        sync();
-        document.getElementById('inv-nom').value=""; document.getElementById('inv-cost').value="";
+        sync(); document.getElementById('inv-nom').value=""; document.getElementById('inv-cost').value="";
     }
-
     function renderInv() {
         let h = "";
         db.inv.forEach((p, i) => {
-            let pub = p.cost * (1 + (db.cfg.pub/100));
-            let b2b = p.cost * (1 + (db.cfg.com/100));
-            let m6 = p.cost * (1 + (db.cfg.m6/100));
-            let m12 = p.cost * (1 + (db.cfg.m12/100));
-            let m24 = p.cost * (1 + (db.cfg.m24/100));
-
             h += `<div class="card">
                 <div class="flex"><b>${p.nom}</b> <span style="color:var(--accent)">STOCK: ${p.stock}</span></div>
                 <div class="price-grid">
                     <div class="price-tag"><small>COSTO</small><b>$${p.cost.toFixed(2)}</b></div>
-                    <div class="price-tag"><small>PÚBLICO</small><b>$${pub.toFixed(2)}</b></div>
-                    <div class="price-tag"><small>B2B</small><b>$${b2b.toFixed(2)}</b></div>
-                    <div class="price-tag"><small>6+ PZAS</small><b>$${m6.toFixed(2)}</b></div>
-                    <div class="price-tag"><small>12+ PZAS</small><b>$${m12.toFixed(2)}</b></div>
-                    <div class="price-tag"><small>24+ PZAS</small><b>$${m24.toFixed(2)}</b></div>
+                    <div class="price-tag"><small>PÚBLICO</small><b>$${(p.cost*(1+db.cfg.pub/100)).toFixed(2)}</b></div>
+                    <div class="price-tag"><small>B2B</small><b>$${(p.cost*(1+db.cfg.com/100)).toFixed(2)}</b></div>
                 </div>
                 <button onclick="delInv(${i})" class="btn-danger" style="margin-top:10px; padding:5px; font-size:10px;">Eliminar</button>
             </div>`;
@@ -528,190 +478,81 @@
         document.getElementById('inv-render').innerHTML = h;
     }
     function delInv(i) { if(confirm("¿Borrar?")) { db.inv.splice(i,1); sync(); } }
-
     function printInvReport() {
         let w = window.open('', '', 'width=800,height=600');
-        let t = "<h2>Reporte de Inventario DrinKar</h2><table border='1' style='width:100%; border-collapse:collapse;'><thead><tr><th>Producto</th><th>Existencia</th><th>Costo Neto</th><th>Valor Total</th></tr></thead><tbody>";
-        let totalVal = 0;
-        db.inv.forEach(p => {
-            totalVal += (p.cost * p.stock);
-            t += `<tr><td>${p.nom}</td><td>${p.stock}</td><td>$${p.cost.toFixed(2)}</td><td>$${(p.cost*p.stock).toFixed(2)}</td></tr>`;
-        });
-        w.document.write(t + `</tbody></table><h3>Valor Total del Inventario: $${totalVal.toFixed(2)}</h3>`);
-        w.print();
+        let t = "<h2>Inventario DrinKar</h2><table border='1' style='width:100%;'><thead><tr><th>Producto</th><th>Stock</th><th>Costo</th></tr></thead><tbody>";
+        db.inv.forEach(p => { t += `<tr><td>${p.nom}</td><td>${p.stock}</td><td>$${p.cost.toFixed(2)}</td></tr>`; });
+        w.document.write(t + "</tbody></table>"); w.print();
     }
 
-    // --- COMPRA / POS SELECTS ---
+    // --- COMPRA / POS ---
     function populateSelects() {
         let op = db.inv.map(p => `<option value="${p.id}">${p.nom} (${p.stock})</option>`).join('');
-        document.getElementById('buy-prod').innerHTML = op;
-        document.getElementById('pos-prod').innerHTML = op;
+        document.getElementById('buy-prod').innerHTML = op; document.getElementById('pos-prod').innerHTML = op;
     }
-
     function executePurchase() {
-        let id = document.getElementById('buy-prod').value;
-        let q = parseInt(document.getElementById('buy-qty').value);
-        let c = parseFloat(document.getElementById('buy-cost').value);
-        let f = document.getElementById('buy-fact').checked;
-        let p = db.inv.find(x => x.id == id);
-        
+        let id = document.getElementById('buy-prod').value, q = parseInt(document.getElementById('buy-qty').value), c = parseFloat(document.getElementById('buy-cost').value), f = document.getElementById('buy-fact').checked, p = db.inv.find(x => x.id == id);
         if(!p || isNaN(q)) return;
-        p.stock += q;
-        if(c) p.cost = c;
-
-        let totalCompra = (c||p.cost)*q;
-        let ivaCalc = f ? (totalCompra - (totalCompra/1.16)) : 0;
-
-        db.mov.push({ 
-            fecha: new Date().toLocaleDateString(), 
-            tipo:'COMPRA', 
-            detalle: `${q} x ${p.nom}`, 
-            total: totalCompra,
-            facturado: f,
-            iva: ivaCalc
-        });
-        sync();
-        document.getElementById('buy-qty').value = "";
-        alert("Inventario Actualizado");
+        p.stock += q; if(c) p.cost = c;
+        let tot = (c||p.cost)*q;
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'COMPRA', detalle: `${q} x ${p.nom}`, total: tot, facturado: f, iva: f ? tot-(tot/1.16) : 0 });
+        sync(); alert("Inventario Actualizado");
     }
-
-    // --- VENTAS ---
     function addToCart() {
-        let id = document.getElementById('pos-prod').value;
-        let q = parseInt(document.getElementById('pos-qty').value);
-        let pr = parseFloat(document.getElementById('pos-price').value);
-        let p = db.inv.find(x => x.id == id);
-        if(!p || isNaN(pr)) return alert("Ingresa precio venta");
-        if(p.stock < q) return alert("Sin stock suficiente");
-        cart.push({ id: p.id, nom: p.nom, q, pr, total: pr*q, cost: p.cost*q });
-        renderCart();
+        let id = document.getElementById('pos-prod').value, q = parseInt(document.getElementById('pos-qty').value), pr = parseFloat(document.getElementById('pos-price').value), p = db.inv.find(x => x.id == id);
+        if(!p || isNaN(pr)) return alert("Precio inválido.");
+        if(p.stock < q) return alert("Sin stock.");
+        cart.push({ id: p.id, nom: p.nom, q, pr, total: pr*q, cost: p.cost*q }); renderCart();
     }
-
     function renderCart() {
         let t = 0;
-        document.getElementById('cart-list').innerHTML = cart.map(c => {
-            t+=c.total;
-            return `<div class="flex"><span>${c.q} x ${c.nom}</span> <b>$${c.total.toFixed(2)}</b></div>`;
-        }).join('');
+        document.getElementById('cart-list').innerHTML = cart.map(c => { t+=c.total; return `<div class="flex"><span>${c.q} x ${c.nom}</span> <b>$${c.total.toFixed(2)}</b></div>`; }).join('');
         document.getElementById('cart-total').innerText = `$${t.toFixed(2)}`;
     }
-
     function finalizeSale() {
         if(!cart.length) return;
-        let fact = document.getElementById('pos-fact').checked;
-        let tt = 0; let tc = 0; let h = "";
-        
-        let resumenDetalle = cart.map(c => `${c.q} x ${c.nom}`).join(' | ');
-
-        cart.forEach(c => {
-            tt+=c.total; tc+=c.cost;
-            db.inv.find(x => x.id == c.id).stock -= c.q;
-            h += `<tr><td>${c.q}</td><td>${c.nom}</td><td align="right">$${c.total.toFixed(2)}</td></tr>`;
-        });
-
-        let ivaCalc = fact ? (tt - (tt/1.16)) : 0;
-
-        db.mov.push({ 
-            fecha: new Date().toLocaleDateString(), 
-            tipo:'VENTA', 
-            detalle: resumenDetalle, 
-            total: tt, 
-            gain: tt-tc,
-            facturado: fact,
-            iva: ivaCalc
-        });
-        
-        document.getElementById('t-fecha').innerText = new Date().toLocaleString();
-        document.getElementById('t-items').innerHTML = h;
+        let f = document.getElementById('pos-fact').checked, tt = 0, tc = 0, h = "", res = cart.map(c => `${c.q} x ${c.nom}`).join(' | ');
+        cart.forEach(c => { tt+=c.total; tc+=c.cost; db.inv.find(x => x.id == c.id).stock -= c.q; h += `<tr><td>${c.q}</td><td>${c.nom}</td><td align="right">$${c.total.toFixed(2)}</td></tr>`; });
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'VENTA', detalle: res, total: tt, gain: tt-tc, facturado: f, iva: f ? tt-(tt/1.16) : 0 });
+        document.getElementById('t-fecha').innerText = new Date().toLocaleString(); document.getElementById('t-items').innerHTML = h;
         document.getElementById('t-total-final').innerText = `TOTAL: $${tt.toFixed(2)}`;
-        document.getElementById('t-desglose').innerHTML = fact ? `Subtotal: $${(tt/1.16).toFixed(2)}<br>IVA: $${ivaCalc.toFixed(2)}` : "";
-        
-        document.getElementById('pos-ui').classList.add('hidden');
-        document.getElementById('ticket-view').classList.remove('hidden');
-        sync();
+        document.getElementById('t-desglose').innerHTML = f ? `Subtotal: $${(tt/1.16).toFixed(2)}<br>IVA: $${(tt-(tt/1.16)).toFixed(2)}` : "";
+        document.getElementById('pos-ui').classList.add('hidden'); document.getElementById('ticket-view').classList.remove('hidden'); sync();
     }
+    function resetSale() { cart = []; renderCart(); document.getElementById('pos-ui').classList.remove('hidden'); document.getElementById('ticket-view').classList.add('hidden'); }
+    function downloadTicket() { html2canvas(document.querySelector("#ticket-wrap")).then(canvas => { let a = document.createElement('a'); a.download = 'ticket.png'; a.href = canvas.toDataURL(); a.click(); }); }
 
-    function resetSale() {
-        cart = []; renderCart();
-        document.getElementById('pos-price').value = "";
-        document.getElementById('pos-qty').value = "1";
-        document.getElementById('pos-ui').classList.remove('hidden');
-        document.getElementById('ticket-view').classList.add('hidden');
-    }
-
-    function downloadTicket() {
-        html2canvas(document.querySelector("#ticket-wrap")).then(canvas => {
-            let a = document.createElement('a'); a.download = 'ticket.png'; a.href = canvas.toDataURL(); a.click();
-        });
-    }
-
-    // --- REPORTES ---
+    // --- REPORTE ---
     function renderRep() {
-        let g = 0, ivaFavor = 0, ivaContra = 0, h = "";
-        
+        let g = 0, iF = 0, iC = 0, h = "";
         [...db.mov].reverse().forEach(m => {
-            if(m.tipo === 'VENTA') {
-                g += (m.gain || 0);
-                if(m.facturado) ivaContra += (m.iva || 0);
-            }
-            if(m.tipo === 'COMPRA' && m.facturado) {
-                ivaFavor += (m.iva || 0);
-            }
-
-            let textFact = m.facturado ? '<span style="color:var(--info); font-weight:bold;">SÍ</span>' : 'NO';
-            let descStr = m.detalle ? m.detalle : (m.desc || '-');
-
-            h += `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${descStr}</td><td>$${m.total.toFixed(2)}</td><td>${textFact}</td></tr>`;
+            if(m.tipo === 'VENTA') { g += (m.gain || 0); if(m.facturado) iC += (m.iva || 0); }
+            if(m.tipo === 'COMPRA' && m.facturado) iF += (m.iva || 0);
+            h += `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.detalle||m.desc}</td><td>$${m.total.toFixed(2)}</td><td>${m.facturado?'SÍ':'NO'}</td></tr>`;
         });
-
-        let balanceIVA = ivaFavor - ivaContra;
-        
         document.getElementById('rep-gain').innerText = `$${g.toFixed(2)}`;
-        document.getElementById('rep-iva-bal').innerText = `$${balanceIVA.toFixed(2)}`;
-        document.getElementById('rep-iva-bal').style.color = balanceIVA >= 0 ? 'var(--accent)' : '#c0392b';
-        document.getElementById('rep-iva-detail').innerHTML = `A Favor (Compras): <b style="color:var(--accent)">$${ivaFavor.toFixed(2)}</b><br>Por Pagar (Ventas): <b style="color:#c0392b">$${ivaContra.toFixed(2)}</b>`;
-        
+        document.getElementById('rep-iva-bal').innerText = `$${(iF-iC).toFixed(2)}`;
+        document.getElementById('rep-iva-bal').style.color = (iF-iC) >= 0 ? 'var(--accent)' : '#c0392b';
+        document.getElementById('rep-iva-detail').innerHTML = `Favor: $${iF.toFixed(2)} | Pagar: $${iC.toFixed(2)}`;
         document.getElementById('rep-list').innerHTML = h;
     }
 
-    // --- CONFIG & THEME ---
+    // --- CONFIG ---
     function saveSettings() {
-        db.cfg.pub = parseFloat(document.getElementById('cfg-pub').value) || 0;
-        db.cfg.com = parseFloat(document.getElementById('cfg-com').value) || 0;
-        db.cfg.m6 = parseFloat(document.getElementById('cfg-m6').value) || 0;
-        db.cfg.m12 = parseFloat(document.getElementById('cfg-m12').value) || 0;
-        db.cfg.m24 = parseFloat(document.getElementById('cfg-m24').value) || 0;
-        sync(); alert("Márgenes guardados exitosamente.");
+        db.cfg.pub = parseFloat(document.getElementById('cfg-pub').value);
+        db.cfg.com = parseFloat(document.getElementById('cfg-com').value);
+        db.cfg.m6 = parseFloat(document.getElementById('cfg-m6').value);
+        db.cfg.m12 = parseFloat(document.getElementById('cfg-m12').value);
+        db.cfg.m24 = parseFloat(document.getElementById('cfg-m24').value);
+        sync(); alert("Guardado.");
     }
-
-    function saveTheme() {
-        db.cfg.colorP = document.getElementById('cfg-color-p').value;
-        db.cfg.colorBG = document.getElementById('cfg-color-bg').value;
-        sync(); alert("Colores aplicados.");
-    }
-
+    function saveTheme() { db.cfg.colorP = document.getElementById('cfg-color-p').value; db.cfg.colorBG = document.getElementById('cfg-color-bg').value; sync(); }
     function applyTheme() {
-        const r = document.querySelector(':root');
-        r.style.setProperty('--primary', db.cfg.colorP);
-        r.style.setProperty('--bg', db.cfg.colorBG);
-        
-        document.getElementById('cfg-color-p').value = db.cfg.colorP;
-        document.getElementById('cfg-color-bg').value = db.cfg.colorBG;
-        
-        document.getElementById('cfg-pub').value = db.cfg.pub;
-        document.getElementById('cfg-com').value = db.cfg.com;
-        document.getElementById('cfg-m6').value = db.cfg.m6;
-        document.getElementById('cfg-m12').value = db.cfg.m12;
-        document.getElementById('cfg-m24').value = db.cfg.m24;
+        const r = document.querySelector(':root'); r.style.setProperty('--primary', db.cfg.colorP); r.style.setProperty('--bg', db.cfg.colorBG);
+        document.getElementById('cfg-pub').value = db.cfg.pub; document.getElementById('cfg-com').value = db.cfg.com;
+        document.getElementById('cfg-m6').value = db.cfg.m6; document.getElementById('cfg-m12').value = db.cfg.m12; document.getElementById('cfg-m24').value = db.cfg.m24;
     }
-
-    function hardReset() {
-        if(confirm("¿BORRAR TODO? No hay marcha atrás.")) {
-            dbRef.set(defaultDB);
-            location.reload();
-        }
-    }
+    function hardReset() { if(confirm("¿BORRAR TODO?")) { dbRef.set(defaultDB); location.reload(); } }
 </script>
-
 </body>
 </html>
