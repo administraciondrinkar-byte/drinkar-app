@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Suite V4.5 - Ultimate Edition</title>
+    <title>DrinKar Suite V4.6 - Enterprise</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -51,13 +51,11 @@
         .flex { display: flex; gap: 10px; }
         .flex > * { flex: 1; }
 
-        /* Estilo elegante para el Checkbox de Facturación y Opciones */
         .fancy-checkbox { display: flex; align-items: center; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid var(--primary); cursor: pointer; margin-bottom: 15px; transition: 0.3s;}
         .fancy-checkbox:hover { background: #2a2a2a; }
         .fancy-checkbox input { width: 24px; height: 24px; margin: 0 15px 0 0; accent-color: var(--accent); cursor: pointer; }
         .fancy-checkbox span { font-size: 14px; font-weight: bold; color: white; }
 
-        /* Ticket */
         #ticket-wrap { background: white; color: black; padding: 20px; width: 300px; margin: 20px auto; font-family: monospace; }
         #ticket-wrap * { color: black !important; }
     </style>
@@ -71,7 +69,7 @@
 
 <div class="header">
     <h1 id="brand-name">DRIN<span style="color:var(--primary)">KAR</span></h1>
-    <small style="color:var(--text-muted)">V4.5 ULTIMATE EDITION</small>
+    <small style="color:var(--text-muted)">V4.6 ENTERPRISE EDITION</small>
 </div>
 
 <div class="nav-bar">
@@ -116,21 +114,34 @@
 
     <div id="view-quote" class="view hidden">
         <div class="card">
-            <h3>Generador de Cotizaciones</h3>
-            <label>Concepto / Cliente (Opcional)</label>
-            <input type="text" id="quote-name" placeholder="Ej. Evento 50 personas, Boda, etc.">
+            <h3>Generador de Cotizaciones Formales</h3>
+            <label>Datos del Cliente / Proyecto (Opcional)</label>
+            <input type="text" id="quote-name" placeholder="Ej. Boda 200 personas, Evento Corporativo...">
             
-            <label>Costo Neto Base</label>
-            <input type="number" id="quote-net" placeholder="0.00" oninput="runQuoteCalc()">
+            <div style="border: 1px solid #333; padding: 15px; border-radius: 10px; margin-top: 15px; background: #111;">
+                <h4 style="margin: 0 0 10px 0; color: var(--primary);">Agregar Producto a Cotizar</h4>
+                <label>Nombre del Producto / Concepto</label>
+                <input type="text" id="quote-item-name" placeholder="Ej. Tequila Don Julio 70">
+                
+                <div class="flex">
+                    <div><label>Costo Neto Unitario</label><input type="number" id="quote-item-net" placeholder="0.00"></div>
+                    <div><label>Cant. (Opcional)</label><input type="number" id="quote-item-qty" value="1"></div>
+                </div>
+                
+                <button class="btn btn-outline" onclick="addToQuote()">+ Agregar a la Cotización</button>
+            </div>
 
-            <label class="fancy-checkbox" style="margin-top: 15px;">
-                <input type="checkbox" id="quote-b2b" onchange="runQuoteCalc()">
-                <span>🏢 Incluir Precio B2B en la cotización</span>
+            <div id="quote-list" style="margin-top: 15px; padding-top: 5px;"></div>
+
+            <label class="fancy-checkbox" style="margin-top: 20px;">
+                <input type="checkbox" id="quote-b2b">
+                <span>🏢 Incluir columna de precio B2B / Aliados</span>
             </label>
-
-            <div id="quote-results" class="price-grid" style="margin-top: 15px; margin-bottom: 20px;"></div>
             
-            <button class="btn btn-info" onclick="printQuoteReport()">🖨️ Generar Documento de Cotización</button>
+            <div class="flex" style="margin-top: 15px;">
+                <button class="btn btn-info" onclick="printQuoteReport()">🖨️ Generar Documento</button>
+                <button class="btn btn-danger" onclick="clearQuote()">🗑️ Vaciar</button>
+            </div>
         </div>
     </div>
 
@@ -290,6 +301,7 @@
     };
     let db = defaultDB;
     let cart = [];
+    let quoteCart = []; // Nuevo array para el cotizador
 
     // --- TIEMPO REAL ---
     dbRef.on('value', (snap) => {
@@ -339,82 +351,111 @@
         `;
     }
 
-    // --- COTIZADOR DINÁMICO ---
-    function runQuoteCalc() {
-        let net = parseFloat(document.getElementById('quote-net').value) || 0;
-        let incB2B = document.getElementById('quote-b2b').checked;
+    // --- COTIZADOR FORMAL ---
+    function addToQuote() {
+        let n = document.getElementById('quote-item-name').value;
+        let c = parseFloat(document.getElementById('quote-item-net').value);
+        let q = parseInt(document.getElementById('quote-item-qty').value) || 1;
+        if(!n || isNaN(c)) return alert("Agrega el nombre y el costo neto unitario.");
+        quoteCart.push({nom: n, net: c, qty: q});
+        renderQuote();
+        document.getElementById('quote-item-name').value = '';
+        document.getElementById('quote-item-net').value = '';
+        document.getElementById('quote-item-qty').value = '1';
+    }
 
-        let p = net * (1 + (db.cfg.pub/100));
-        let p6 = net * (1 + (db.cfg.m6/100));
-        let p12 = net * (1 + (db.cfg.m12/100));
-        let p24 = net * (1 + (db.cfg.m24/100));
-        
-        let html = `
-            <div class="price-tag"><small>PÚBLICO</small><b>$${p.toFixed(2)}</b></div>
-            <div class="price-tag"><small>6+ PZAS</small><b>$${p6.toFixed(2)}</b></div>
-            <div class="price-tag"><small>12+ PZAS</small><b>$${p12.toFixed(2)}</b></div>
-            <div class="price-tag"><small>24+ PZAS</small><b>$${p24.toFixed(2)}</b></div>
-        `;
+    function renderQuote() {
+        let h = "";
+        quoteCart.forEach((item, i) => {
+            h += `<div class="flex" style="justify-content:space-between; align-items:center; font-size:12px; margin-bottom:8px; background:#1a1a1a; padding:10px; border-radius:5px; border-left: 3px solid var(--primary);">
+                    <span><b>${item.qty}x</b> ${item.nom} <br><small style="color:var(--text-muted)">Costo: $${item.net.toFixed(2)}</small></span>
+                    <button onclick="quoteCart.splice(${i},1); renderQuote()" style="background:#c0392b; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">X</button>
+                  </div>`;
+        });
+        document.getElementById('quote-list').innerHTML = h;
+    }
 
-        if(incB2B) {
-            let b = net * (1 + (db.cfg.com/100));
-            html += `<div class="price-tag"><small>B2B/COMERCIO</small><b>$${b.toFixed(2)}</b></div>`;
-        }
-
-        document.getElementById('quote-results').innerHTML = html;
+    function clearQuote() {
+        if(confirm("¿Seguro que deseas vaciar la cotización actual?")) { quoteCart = []; renderQuote(); }
     }
 
     function printQuoteReport() {
-        let net = parseFloat(document.getElementById('quote-net').value) || 0;
-        if(net === 0) return alert("Ingresa un Costo Neto Base para generar la cotización.");
+        if(quoteCart.length === 0) return alert("Agrega al menos un producto a la cotización.");
         
         let name = document.getElementById('quote-name').value || "Cotización General";
         let incB2B = document.getElementById('quote-b2b').checked;
         let date = new Date().toLocaleDateString();
 
-        let p = net * (1 + (db.cfg.pub/100));
-        let p6 = net * (1 + (db.cfg.m6/100));
-        let p12 = net * (1 + (db.cfg.m12/100));
-        let p24 = net * (1 + (db.cfg.m24/100));
+        let w = window.open('', '', 'width=900,height=700');
+        
+        let rows = "";
+        quoteCart.forEach(item => {
+            let p = item.net * (1 + (db.cfg.pub/100));
+            let p6 = item.net * (1 + (db.cfg.m6/100));
+            let p12 = item.net * (1 + (db.cfg.m12/100));
+            let p24 = item.net * (1 + (db.cfg.m24/100));
+            let pb2b = item.net * (1 + (db.cfg.com/100));
 
-        let w = window.open('', '', 'width=800,height=600');
+            rows += `
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">${item.qty}x <b>${item.nom}</b></td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align:center;">$${p.toFixed(2)}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align:center;">$${p6.toFixed(2)}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align:center;">$${p12.toFixed(2)}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align:center;">$${p24.toFixed(2)}</td>
+                    ${incB2B ? `<td style="padding: 12px; border-bottom: 1px solid #ddd; text-align:center; font-weight:bold; color:#630d16;">$${pb2b.toFixed(2)}</td>` : ''}
+                </tr>
+            `;
+        });
+
+        let b2bHeader = incB2B ? `<th style="padding: 12px; background-color: #f8f9fa; text-align:center; border-bottom: 2px solid #ccc;">Precio B2B / Aliado</th>` : '';
+
+        // El logo está aquí configurado como drinkar_ofi-05.png
         let t = `
-            <div style="font-family: sans-serif; padding: 20px;">
-                <h2 style="color: #630d16;">DRINKAR</h2>
-                <h3>Documento de Cotización</h3>
-                <p><b>Concepto / Cliente:</b> ${name}</p>
-                <p><b>Fecha de emisión:</b> ${date}</p>
-                <hr style="border: 1px solid #ccc; margin-bottom: 20px;">
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 900px; margin:auto;">
+                <table style="width: 100%; border-bottom: 3px solid #630d16; padding-bottom: 20px; margin-bottom: 30px;">
+                    <tr>
+                        <td style="width: 25%; vertical-align: middle;">
+                            <img src="drinkar_ofi-05.png" alt="DrinKar Logo" style="max-width: 140px; height: auto;">
+                        </td>
+                        <td style="width: 75%; text-align: right; vertical-align: middle;">
+                            <h1 style="color: #630d16; margin: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 1px;">Propuesta Comercial</h1>
+                            <p style="margin: 8px 0 0 0; font-size: 15px; color: #555;">Fecha de emisión: <b>${date}</b></p>
+                            <p style="margin: 5px 0 0 0; font-size: 15px; color: #555;">Atención a: <b style="color:#000;">${name}</b></p>
+                        </td>
+                    </tr>
+                </table>
                 
-                <table border='1' style='width:100%; border-collapse:collapse; text-align:left; font-size: 14px;'>
-                    <thead style="background-color: #f4f4f4;">
+                <p style="font-size: 15px; line-height: 1.6; color:#444;">Estimado cliente, a continuación presentamos la cotización solicitada con las distintas escalas de volumen disponibles para su consideración:</p>
+
+                <table style='width:100%; border-collapse:collapse; margin-top: 30px; font-size: 14px; box-shadow: 0 0 10px rgba(0,0,0,0.05);'>
+                    <thead>
                         <tr>
-                            <th style="padding: 10px;">Escala de Volumen</th>
-                            <th style="padding: 10px;">Precio Unitario Sugerido</th>
+                            <th style="padding: 12px; background-color: #f8f9fa; text-align:left; border-bottom: 2px solid #ccc;">Producto / Concepto</th>
+                            <th style="padding: 12px; background-color: #f8f9fa; text-align:center; border-bottom: 2px solid #ccc;">Público (1-5)</th>
+                            <th style="padding: 12px; background-color: #f8f9fa; text-align:center; border-bottom: 2px solid #ccc;">Medio Mayoreo (6+)</th>
+                            <th style="padding: 12px; background-color: #f8f9fa; text-align:center; border-bottom: 2px solid #ccc;">Mayoreo (12+)</th>
+                            <th style="padding: 12px; background-color: #f8f9fa; text-align:center; border-bottom: 2px solid #ccc;">Gran Mayoreo (24+)</th>
+                            ${b2bHeader}
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td style="padding: 10px;">Público (1-5 pzas)</td><td style="padding: 10px;">$${p.toFixed(2)}</td></tr>
-                        <tr><td style="padding: 10px;">Medio Mayoreo (6+ pzas)</td><td style="padding: 10px;">$${p6.toFixed(2)}</td></tr>
-                        <tr><td style="padding: 10px;">Mayoreo (12+ pzas)</td><td style="padding: 10px;">$${p12.toFixed(2)}</td></tr>
-                        <tr><td style="padding: 10px;">Gran Mayoreo (24+ pzas)</td><td style="padding: 10px;">$${p24.toFixed(2)}</td></tr>
-        `;
-        
-        if(incB2B) {
-            let b = net * (1 + (db.cfg.com/100));
-            t += `<tr><td style="padding: 10px;">B2B / Comercio Aliado</td><td style="padding: 10px;"><b>$${b.toFixed(2)}</b></td></tr>`;
-        }
-
-        t += `
+                        ${rows}
                     </tbody>
                 </table>
-                <p style="margin-top:30px; font-size:11px; color:#555;"><i>* Los precios reflejados en este documento están calculados de acuerdo a los márgenes actuales del sistema y están sujetos a cambios sin previo aviso.<br>* Cotización generada por DrinKar Suite.</i></p>
+                
+                <div style="margin-top: 60px; font-size: 12px; color: #777; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+                    <p style="margin: 4px 0;">* Los precios reflejados en este documento están expresados en Moneda Nacional (MXN) y pueden estar sujetos a cambios sin previo aviso.</p>
+                    <p style="margin: 4px 0;">* Cotización oficial generada por el sistema <b>DrinKar Suite Enterprise</b>.</p>
+                </div>
             </div>
         `;
         
         w.document.write(t);
         w.document.close();
-        setTimeout(() => { w.print(); }, 500);
+        
+        // Retraso para que la imagen cargue antes de lanzar la ventana de impresión
+        setTimeout(() => { w.print(); }, 800); 
     }
 
     // --- SIMULADOR ---
