@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Suite V4.4 - Ultimate Edition</title>
+    <title>DrinKar Suite V4.5 - Ultimate Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -51,7 +51,7 @@
         .flex { display: flex; gap: 10px; }
         .flex > * { flex: 1; }
 
-        /* Estilo elegante para el Checkbox de Facturación */
+        /* Estilo elegante para el Checkbox de Facturación y Opciones */
         .fancy-checkbox { display: flex; align-items: center; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid var(--primary); cursor: pointer; margin-bottom: 15px; transition: 0.3s;}
         .fancy-checkbox:hover { background: #2a2a2a; }
         .fancy-checkbox input { width: 24px; height: 24px; margin: 0 15px 0 0; accent-color: var(--accent); cursor: pointer; }
@@ -71,11 +71,12 @@
 
 <div class="header">
     <h1 id="brand-name">DRIN<span style="color:var(--primary)">KAR</span></h1>
-    <small style="color:var(--text-muted)">V4.4 ULTIMATE EDITION</small>
+    <small style="color:var(--text-muted)">V4.5 ULTIMATE EDITION</small>
 </div>
 
 <div class="nav-bar">
     <a href="#" class="nav-item active" onclick="showView('calc', this)"><span class="nav-icon">⚖️</span>CALC</a>
+    <a href="#" class="nav-item" onclick="showView('quote', this)"><span class="nav-icon">📝</span>COTIZAR</a>
     <a href="#" class="nav-item" onclick="showView('inv', this)"><span class="nav-icon">📦</span>INV</a>
     <a href="#" class="nav-item" onclick="showView('buy', this)"><span class="nav-icon">📥</span>COMPRA</a>
     <a href="#" class="nav-item" onclick="showView('pos', this)"><span class="nav-icon">🛒</span>VENTA</a>
@@ -87,7 +88,7 @@
 
     <div id="view-calc" class="view">
         <div class="card">
-            <h3>Calculadora de Precios</h3>
+            <h3>Calculadora Rápida de Precios</h3>
             <label>Costo Neto de Proveedor</label>
             <input type="number" id="master-net" placeholder="0.00" oninput="runMasterCalc()">
             <div id="master-results" class="price-grid"></div>
@@ -110,6 +111,26 @@
                 <button class="btn btn-info" onclick="printSimReport()">🖨️ Reporte</button>
                 <button class="btn btn-danger" onclick="clearSimReport()">🗑️ Vaciar</button>
             </div>
+        </div>
+    </div>
+
+    <div id="view-quote" class="view hidden">
+        <div class="card">
+            <h3>Generador de Cotizaciones</h3>
+            <label>Concepto / Cliente (Opcional)</label>
+            <input type="text" id="quote-name" placeholder="Ej. Evento 50 personas, Boda, etc.">
+            
+            <label>Costo Neto Base</label>
+            <input type="number" id="quote-net" placeholder="0.00" oninput="runQuoteCalc()">
+
+            <label class="fancy-checkbox" style="margin-top: 15px;">
+                <input type="checkbox" id="quote-b2b" onchange="runQuoteCalc()">
+                <span>🏢 Incluir Precio B2B en la cotización</span>
+            </label>
+
+            <div id="quote-results" class="price-grid" style="margin-top: 15px; margin-bottom: 20px;"></div>
+            
+            <button class="btn btn-info" onclick="printQuoteReport()">🖨️ Generar Documento de Cotización</button>
         </div>
     </div>
 
@@ -274,9 +295,7 @@
     dbRef.on('value', (snap) => {
         db = snap.val() || defaultDB;
         if(!db.cfg) db.cfg = defaultDB.cfg;
-        // Compatibilidad hacia atrás para nuevos campos de margen
         if(db.cfg.m6 === undefined) { db.cfg.m6 = 12; db.cfg.m12 = 10; db.cfg.m24 = 8; }
-        
         if(!db.sim) db.sim = [];
         if(!db.inv) db.inv = [];
         if(!db.mov) db.mov = [];
@@ -318,6 +337,84 @@
             <div class="price-tag"><small>12+ PZAS</small><b>$${p12.toFixed(2)}</b></div>
             <div class="price-tag"><small>24+ PZAS</small><b>$${p24.toFixed(2)}</b></div>
         `;
+    }
+
+    // --- COTIZADOR DINÁMICO ---
+    function runQuoteCalc() {
+        let net = parseFloat(document.getElementById('quote-net').value) || 0;
+        let incB2B = document.getElementById('quote-b2b').checked;
+
+        let p = net * (1 + (db.cfg.pub/100));
+        let p6 = net * (1 + (db.cfg.m6/100));
+        let p12 = net * (1 + (db.cfg.m12/100));
+        let p24 = net * (1 + (db.cfg.m24/100));
+        
+        let html = `
+            <div class="price-tag"><small>PÚBLICO</small><b>$${p.toFixed(2)}</b></div>
+            <div class="price-tag"><small>6+ PZAS</small><b>$${p6.toFixed(2)}</b></div>
+            <div class="price-tag"><small>12+ PZAS</small><b>$${p12.toFixed(2)}</b></div>
+            <div class="price-tag"><small>24+ PZAS</small><b>$${p24.toFixed(2)}</b></div>
+        `;
+
+        if(incB2B) {
+            let b = net * (1 + (db.cfg.com/100));
+            html += `<div class="price-tag"><small>B2B/COMERCIO</small><b>$${b.toFixed(2)}</b></div>`;
+        }
+
+        document.getElementById('quote-results').innerHTML = html;
+    }
+
+    function printQuoteReport() {
+        let net = parseFloat(document.getElementById('quote-net').value) || 0;
+        if(net === 0) return alert("Ingresa un Costo Neto Base para generar la cotización.");
+        
+        let name = document.getElementById('quote-name').value || "Cotización General";
+        let incB2B = document.getElementById('quote-b2b').checked;
+        let date = new Date().toLocaleDateString();
+
+        let p = net * (1 + (db.cfg.pub/100));
+        let p6 = net * (1 + (db.cfg.m6/100));
+        let p12 = net * (1 + (db.cfg.m12/100));
+        let p24 = net * (1 + (db.cfg.m24/100));
+
+        let w = window.open('', '', 'width=800,height=600');
+        let t = `
+            <div style="font-family: sans-serif; padding: 20px;">
+                <h2 style="color: #630d16;">DRINKAR</h2>
+                <h3>Documento de Cotización</h3>
+                <p><b>Concepto / Cliente:</b> ${name}</p>
+                <p><b>Fecha de emisión:</b> ${date}</p>
+                <hr style="border: 1px solid #ccc; margin-bottom: 20px;">
+                
+                <table border='1' style='width:100%; border-collapse:collapse; text-align:left; font-size: 14px;'>
+                    <thead style="background-color: #f4f4f4;">
+                        <tr>
+                            <th style="padding: 10px;">Escala de Volumen</th>
+                            <th style="padding: 10px;">Precio Unitario Sugerido</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="padding: 10px;">Público (1-5 pzas)</td><td style="padding: 10px;">$${p.toFixed(2)}</td></tr>
+                        <tr><td style="padding: 10px;">Medio Mayoreo (6+ pzas)</td><td style="padding: 10px;">$${p6.toFixed(2)}</td></tr>
+                        <tr><td style="padding: 10px;">Mayoreo (12+ pzas)</td><td style="padding: 10px;">$${p12.toFixed(2)}</td></tr>
+                        <tr><td style="padding: 10px;">Gran Mayoreo (24+ pzas)</td><td style="padding: 10px;">$${p24.toFixed(2)}</td></tr>
+        `;
+        
+        if(incB2B) {
+            let b = net * (1 + (db.cfg.com/100));
+            t += `<tr><td style="padding: 10px;">B2B / Comercio Aliado</td><td style="padding: 10px;"><b>$${b.toFixed(2)}</b></td></tr>`;
+        }
+
+        t += `
+                    </tbody>
+                </table>
+                <p style="margin-top:30px; font-size:11px; color:#555;"><i>* Los precios reflejados en este documento están calculados de acuerdo a los márgenes actuales del sistema y están sujetos a cambios sin previo aviso.<br>* Cotización generada por DrinKar Suite.</i></p>
+            </div>
+        `;
+        
+        w.document.write(t);
+        w.document.close();
+        setTimeout(() => { w.print(); }, 500);
     }
 
     // --- SIMULADOR ---
@@ -514,14 +611,13 @@
         [...db.mov].reverse().forEach(m => {
             if(m.tipo === 'VENTA') {
                 g += (m.gain || 0);
-                if(m.facturado) ivaContra += (m.iva || 0); // Venta cobra IVA (en contra)
+                if(m.facturado) ivaContra += (m.iva || 0);
             }
             if(m.tipo === 'COMPRA' && m.facturado) {
-                ivaFavor += (m.iva || 0); // Compra paga IVA (a favor)
+                ivaFavor += (m.iva || 0);
             }
 
             let textFact = m.facturado ? '<span style="color:var(--info); font-weight:bold;">SÍ</span>' : 'NO';
-            // Compatibilidad con reportes viejos (m.desc vs m.detalle)
             let descStr = m.detalle ? m.detalle : (m.desc || '-');
 
             h += `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${descStr}</td><td>$${m.total.toFixed(2)}</td><td>${textFact}</td></tr>`;
@@ -561,7 +657,6 @@
         document.getElementById('cfg-color-p').value = db.cfg.colorP;
         document.getElementById('cfg-color-bg').value = db.cfg.colorBG;
         
-        // Sincronizar inputs numéricos de config
         document.getElementById('cfg-pub').value = db.cfg.pub;
         document.getElementById('cfg-com').value = db.cfg.com;
         document.getElementById('cfg-m6').value = db.cfg.m6;
