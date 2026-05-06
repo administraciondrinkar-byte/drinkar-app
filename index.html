@@ -97,7 +97,10 @@
                 <div><label>% IVA</label><input type="number" id="sim-iva-p" value="16"></div>
             </div>
             <button class="btn btn-outline" onclick="addToSim()">+ Agregar a lista</button>
-            <table style="margin-top:15px;"><tbody id="sim-list"></tbody></table>
+            <table style="margin-top:15px;">
+                <thead><tr><th>Neto</th><th>Subtotal</th><th>IVA</th></tr></thead>
+                <tbody id="sim-list"></tbody>
+            </table>
             <div id="sim-totals" style="text-align:right; margin-top:10px;"></div>
         </div>
     </div>
@@ -137,6 +140,9 @@
             </div>
             <button class="btn btn-primary" onclick="addToInv()">Guardar Producto</button>
         </div>
+        
+        <button class="btn btn-info" onclick="printInvReport()">🖨️ Generar Reporte de Inventario</button>
+        
         <div id="inv-render"></div>
     </div>
 
@@ -261,9 +267,22 @@
                 <div><label>12+</label><input type="number" id="cfg-m12"></div>
                 <div><label>24+</label><input type="number" id="cfg-m24"></div>
             </div>
-            <button class="btn btn-primary" onclick="saveSettings()">Guardar</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Guardar Márgenes</button>
         </div>
-        <button class="btn btn-danger" onclick="hardReset()">REINICIAR TODO</button>
+
+        <div class="card">
+            <h3>Personalización Visual</h3>
+            <div class="flex">
+                <div><label>Color Principal</label><input type="color" id="cfg-color-p" value="#630d16"></div>
+                <div><label>Color Fondo</label><input type="color" id="cfg-color-bg" value="#0a0a0a"></div>
+            </div>
+            <button class="btn btn-info" onclick="saveTheme()">Aplicar Colores</button>
+        </div>
+
+        <div class="card" style="border-color: #c0392b;">
+            <h3 style="color:#c0392b">Peligro</h3>
+            <button class="btn btn-danger" onclick="hardReset()">REINICIAR TODO</button>
+        </div>
     </div>
 
 </div>
@@ -294,6 +313,7 @@
         db = snap.val() || defaultDB;
         if(!db.clients) db.clients = [];
         if(!db.expenses) db.expenses = [];
+        if(!db.sim) db.sim = [];
         document.getElementById('loading').style.display = 'none';
         applyTheme();
         refreshUI();
@@ -317,6 +337,25 @@
             <div class="price-tag"><small>6+</small><b>$${calc(db.cfg.m6)}</b></div>
             <div class="price-tag"><small>12+</small><b>$${calc(db.cfg.m12)}</b></div>
             <div class="price-tag"><small>24+</small><b>$${calc(db.cfg.m24)}</b></div>`;
+    }
+
+    // --- SIMULADOR ---
+    function addToSim() {
+        let val = parseFloat(document.getElementById('sim-net').value);
+        if(!val) return;
+        db.sim.push({ net: val, sub: val/1.16, iva: val - (val/1.16) });
+        sync(); document.getElementById('sim-net').value = "";
+    }
+    function renderSim() {
+        let h = ""; let tn=0, ts=0, ti=0;
+        if(db.sim) {
+            db.sim.forEach((s, i) => {
+                tn+=s.net; ts+=s.sub; ti+=s.iva;
+                h += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td><td><button onclick="db.sim.splice(${i},1);sync()" style="color:red; background:none; border:none;">X</button></td></tr>`;
+            });
+        }
+        document.getElementById('sim-list').innerHTML = h;
+        document.getElementById('sim-totals').innerHTML = `<b>TOTAL NETO: $${tn.toFixed(2)}</b><br><small>Sub: $${ts.toFixed(2)} | IVA: $${ti.toFixed(2)}</small>`;
     }
 
     // --- CLIENTES ---
@@ -425,11 +464,11 @@
         let incB2B = document.getElementById('quote-b2b').checked;
         let rows = quoteCart.map(i => {
             let p = i.net * (1+(db.cfg.pub/100));
-            return incB2B ? `<tr><td>${i.qty}x ${i.nom}</td><td>$${p.toFixed(2)}</td><td>$${(i.net*(1+(db.cfg.com/100))).toFixed(2)}</td></tr>` : 
-            `<tr><td>${i.qty}x ${i.nom}</td><td>$${p.toFixed(2)}</td><td>$${(i.net*(1+db.cfg.m6/100)).toFixed(2)}</td><td>$${(i.net*(1+db.cfg.m12/100)).toFixed(2)}</td><td>$${(i.net*(1+db.cfg.m24/100)).toFixed(2)}</td></tr>`;
+            return incB2B ? `<tr><td style="padding:10px; border-bottom:1px solid #ddd;">${i.qty}x ${i.nom}</td><td style="padding:10px; border-bottom:1px solid #ddd; text-align:center;">$${p.toFixed(2)}</td><td style="padding:10px; border-bottom:1px solid #ddd; text-align:center; font-weight:bold; color:#630d16;">$${(i.net*(1+(db.cfg.com/100))).toFixed(2)}</td></tr>` : 
+            `<tr><td style="padding:10px; border-bottom:1px solid #ddd;">${i.qty}x ${i.nom}</td><td style="padding:10px; border-bottom:1px solid #ddd; text-align:center;">$${p.toFixed(2)}</td><td style="padding:10px; border-bottom:1px solid #ddd; text-align:center;">$${(i.net*(1+db.cfg.m6/100)).toFixed(2)}</td><td style="padding:10px; border-bottom:1px solid #ddd; text-align:center;">$${(i.net*(1+db.cfg.m12/100)).toFixed(2)}</td><td style="padding:10px; border-bottom:1px solid #ddd; text-align:center;">$${(i.net*(1+db.cfg.m24/100)).toFixed(2)}</td></tr>`;
         }).join('');
-        let header = incB2B ? `<th>Producto</th><th>Público</th><th>B2B</th>` : `<th>Producto</th><th>Público</th><th>6+</th><th>12+</th><th>24+</th>`;
-        w.document.write(`<div style="font-family:Arial;padding:40px"><img src="drinkar_ofi-05.png" style="max-width:250px"><h1 style="color:#630d16">Propuesta Comercial</h1><p>Atención: ${document.getElementById('quote-name').value}</p><table border="1" style="width:100%;border-collapse:collapse"><thead>${header}</thead><tbody>${rows}</tbody></table></div>`);
+        let header = incB2B ? `<th style="padding:10px; background:#f4f4f4;">Producto</th><th style="padding:10px; background:#f4f4f4;">Público</th><th style="padding:10px; background:#f4f4f4;">B2B</th>` : `<th style="padding:10px; background:#f4f4f4;">Producto</th><th style="padding:10px; background:#f4f4f4;">Público</th><th style="padding:10px; background:#f4f4f4;">6+</th><th style="padding:10px; background:#f4f4f4;">12+</th><th style="padding:10px; background:#f4f4f4;">24+</th>`;
+        w.document.write(`<div style="font-family:Arial;padding:40px;max-width:950px;margin:auto;"><table style="width:100%; border-bottom:4px solid #630d16; padding-bottom:20px; margin-bottom:30px;"><tr><td style="width:35%;"><img src="drinkar_ofi-05.png" style="max-width:220px;"></td><td style="width:65%; text-align:right;"><h1 style="color:#630d16; margin:0; font-size:32px;">Propuesta Comercial</h1><p style="margin:10px 0 0 0;">Atención a: <b>${document.getElementById('quote-name').value}</b></p></td></tr></table><table style="width:100%;border-collapse:collapse;font-size:14px;"><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div>`);
         w.document.close(); setTimeout(() => w.print(), 800);
     }
 
@@ -441,6 +480,18 @@
     }
     function renderInv() {
         document.getElementById('inv-render').innerHTML = db.inv.map((p, i) => `<div class="card"><b>${p.nom}</b> | Stock: ${p.stock}<br><small>Costo: $${p.cost.toFixed(2)}</small><br><button onclick="db.inv.splice(${i},1);sync()" class="btn-danger" style="padding:5px;font-size:10px;width:auto;margin-top:10px">Eliminar</button></div>`).join('');
+    }
+
+    // --- FUNCIÓN RESTAURADA: REPORTE DE INVENTARIO ---
+    function printInvReport() {
+        let w = window.open('', '', 'width=800,height=600');
+        let t = "<div style='font-family:Arial, sans-serif; padding:20px;'><h2 style='color:#630d16;'>Inventario Actual DrinKar</h2><table style='width:100%; border-collapse: collapse; text-align:left;'><thead><tr><th style='padding:10px; border-bottom:2px solid #630d16;'>Producto</th><th style='padding:10px; border-bottom:2px solid #630d16;'>Stock</th><th style='padding:10px; border-bottom:2px solid #630d16;'>Costo Neto</th></tr></thead><tbody>";
+        db.inv.forEach(p => { 
+            t += `<tr><td style='padding:10px; border-bottom:1px solid #ccc;'>${p.nom}</td><td style='padding:10px; border-bottom:1px solid #ccc;'>${p.stock}</td><td style='padding:10px; border-bottom:1px solid #ccc;'>$${p.cost.toFixed(2)}</td></tr>`; 
+        });
+        w.document.write(t + "</tbody></table></div>"); 
+        w.document.close();
+        setTimeout(() => w.print(), 500);
     }
 
     function executePurchase() {
@@ -477,13 +528,28 @@
         db.cfg.m6 = parseFloat(document.getElementById('cfg-m6').value);
         db.cfg.m12 = parseFloat(document.getElementById('cfg-m12').value);
         db.cfg.m24 = parseFloat(document.getElementById('cfg-m24').value);
-        sync();
+        sync(); alert("Márgenes guardados.");
     }
+    
+    // --- FUNCIÓN RESTAURADA: GUARDAR COLORES ---
+    function saveTheme() {
+        db.cfg.colorP = document.getElementById('cfg-color-p').value;
+        db.cfg.colorBG = document.getElementById('cfg-color-bg').value;
+        sync(); alert("Colores actualizados.");
+    }
+
     function applyTheme() {
-        const r = document.querySelector(':root'); r.style.setProperty('--primary', db.cfg.colorP);
+        const r = document.querySelector(':root'); 
+        r.style.setProperty('--primary', db.cfg.colorP);
+        r.style.setProperty('--bg', db.cfg.colorBG);
+        
+        if(document.getElementById('cfg-color-p')) document.getElementById('cfg-color-p').value = db.cfg.colorP;
+        if(document.getElementById('cfg-color-bg')) document.getElementById('cfg-color-bg').value = db.cfg.colorBG;
+        
         document.getElementById('cfg-pub').value = db.cfg.pub; document.getElementById('cfg-com').value = db.cfg.com;
         document.getElementById('cfg-m6').value = db.cfg.m6; document.getElementById('cfg-m12').value = db.cfg.m12; document.getElementById('cfg-m24').value = db.cfg.m24;
     }
+    
     function hardReset() { if(confirm("¿BORRAR TODO?")) { dbRef.set(defaultDB); location.reload(); } }
 </script>
 </body>
