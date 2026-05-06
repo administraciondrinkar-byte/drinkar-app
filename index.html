@@ -12,45 +12,45 @@
     <style>
         :root { --primary: #630d16; --bg: #0a0a0a; --card-bg: #151515; --text: #f8f9fa; --text-muted: #a0a0a0; --accent: #27ae60; --info: #2980b9; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; transition: background 0.3s; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; transition: background 0.3s, color 0.3s; }
         
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align:center; padding: 20px;}
         .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;}
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .header { padding: 25px 20px; text-align: center; border-bottom: 2px solid var(--primary); }
-        .nav-bar { background: var(--card-bg); display: flex; justify-content: space-between; padding: 10px; position: sticky; top: 0; z-index: 1000; overflow-x: auto; gap: 8px; border-bottom: 1px solid #222; }
+        .nav-bar { background: var(--card-bg); display: flex; justify-content: space-between; padding: 10px; position: sticky; top: 0; z-index: 1000; overflow-x: auto; gap: 8px; border-bottom: 1px solid #222; transition: background 0.3s; }
         .nav-item { color: var(--text-muted); text-decoration: none; font-size: 9px; text-align: center; min-width: 55px; display: flex; flex-direction: column; align-items: center; }
-        .nav-item.active { color: white; font-weight: bold; }
-        .nav-icon { font-size: 16px; background: #222; padding: 8px; border-radius: 10px; margin-bottom: 4px; transition: 0.3s; }
-        .active .nav-icon { background: var(--primary); transform: scale(1.1); }
+        .nav-item.active { color: var(--text); font-weight: bold; }
+        .nav-icon { font-size: 16px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 10px; margin-bottom: 4px; transition: 0.3s; }
+        .active .nav-icon { background: var(--primary); transform: scale(1.1); color: #fff; }
 
         .container { padding: 15px; max-width: 900px; margin: auto; }
-        .card { background: var(--card-bg); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid #222; }
+        .card { background: var(--card-bg); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s; }
         
         label { display: block; font-size: 11px; color: var(--primary); margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 10px; color: white; margin-bottom: 15px; font-size: 14px; outline: none; font-family: inherit; }
+        input, select, textarea { width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: inherit; margin-bottom: 15px; font-size: 14px; outline: none; font-family: inherit; }
         
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-primary { background: var(--primary); color: white; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; color: #fff;}
+        .btn-primary { background: var(--primary); }
         .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
-        .btn-success { background: var(--accent); color: white; }
-        .btn-danger { background: #c0392b; color: white; }
-        .btn-info { background: var(--info); color: white; }
+        .btn-success { background: var(--accent); }
+        .btn-danger { background: #c0392b; }
+        .btn-info { background: var(--info); }
 
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { text-align: left; padding: 10px; border-bottom: 2px solid var(--primary); color: var(--primary); }
-        td { padding: 10px; border-bottom: 1px solid #222; }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
         .price-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
-        .price-tag { background: #111; padding: 8px; border-radius: 5px; border-left: 3px solid var(--primary); }
+        .price-tag { background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; border-left: 3px solid var(--primary); }
         .price-tag small { font-size: 9px; color: var(--text-muted); display: block; }
 
         .hidden { display: none; }
         .flex { display: flex; gap: 10px; }
         .flex > * { flex: 1; }
 
-        .fancy-checkbox { display: flex; align-items: center; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid var(--primary); cursor: pointer; margin-bottom: 15px; transition: 0.3s;}
+        .fancy-checkbox { display: flex; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; border: 1px solid var(--primary); cursor: pointer; margin-bottom: 15px; transition: 0.3s;}
         .fancy-checkbox input { width: 22px; height: 22px; margin-right: 15px; accent-color: var(--accent); }
 
         #ticket-wrap { background: white; color: black; padding: 20px; width: 300px; margin: 20px auto; font-family: monospace; }
@@ -98,7 +98,7 @@
             </div>
             <button class="btn btn-outline" onclick="addToSim()">+ Agregar a lista</button>
             <table style="margin-top:15px;">
-                <thead><tr><th>Neto</th><th>Subtotal</th><th>IVA</th></tr></thead>
+                <thead><tr><th>Neto</th><th>Subtotal</th><th>IVA</th><th></th></tr></thead>
                 <tbody id="sim-list"></tbody>
             </table>
             <div id="sim-totals" style="text-align:right; margin-top:10px;"></div>
@@ -110,7 +110,7 @@
             <h3>Nueva Cotización</h3>
             <label>Cliente / Evento</label>
             <input type="text" id="quote-name" placeholder="Ej. Boda de Carlos">
-            <div style="background: #111; padding: 15px; border-radius: 10px;">
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
                 <label>Producto</label><input type="text" id="quote-item-name">
                 <div class="flex">
                     <div><label>Costo Neto</label><input type="number" id="quote-item-net"></div>
@@ -276,6 +276,10 @@
                 <div><label>Color Principal</label><input type="color" id="cfg-color-p" value="#630d16"></div>
                 <div><label>Color Fondo</label><input type="color" id="cfg-color-bg" value="#0a0a0a"></div>
             </div>
+            <div class="flex">
+                <div><label>Color Marcos</label><input type="color" id="cfg-color-card" value="#151515"></div>
+                <div><label>Color Texto</label><input type="color" id="cfg-color-text" value="#f8f9fa"></div>
+            </div>
             <button class="btn btn-info" onclick="saveTheme()">Aplicar Colores</button>
         </div>
 
@@ -303,7 +307,7 @@
 
     const defaultDB = {
         inv: [], mov: [], sim: [], clients: [], expenses: [],
-        cfg: { pub: 15, com: 13.5, m6: 12, m12: 10, m24: 8, colorP: '#630d16', colorBG: '#0a0a0a' }
+        cfg: { pub: 15, com: 13.5, m6: 12, m12: 10, m24: 8, colorP: '#630d16', colorBG: '#0a0a0a', colorCard: '#151515', colorText: '#f8f9fa' }
     };
     let db = defaultDB;
     let cart = [];
@@ -314,6 +318,11 @@
         if(!db.clients) db.clients = [];
         if(!db.expenses) db.expenses = [];
         if(!db.sim) db.sim = [];
+        
+        // Prevención si son bases de datos antiguas que no tenían estos colores
+        if(!db.cfg.colorCard) db.cfg.colorCard = '#151515';
+        if(!db.cfg.colorText) db.cfg.colorText = '#f8f9fa';
+
         document.getElementById('loading').style.display = 'none';
         applyTheme();
         refreshUI();
@@ -351,7 +360,7 @@
         if(db.sim) {
             db.sim.forEach((s, i) => {
                 tn+=s.net; ts+=s.sub; ti+=s.iva;
-                h += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td><td><button onclick="db.sim.splice(${i},1);sync()" style="color:red; background:none; border:none;">X</button></td></tr>`;
+                h += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td><td><button onclick="db.sim.splice(${i},1);sync()" style="color:red; background:none; border:none; cursor:pointer;">X</button></td></tr>`;
             });
         }
         document.getElementById('sim-list').innerHTML = h;
@@ -368,7 +377,7 @@
     function renderClients() {
         document.getElementById('cli-list').innerHTML = db.clients.map((c, i) => `
             <tr><td><b>${c.nom}</b></td><td>${c.tel}<br><small>${c.mail}</small></td>
-            <td><button onclick="db.clients.splice(${i},1);sync()" style="color:red;background:none;border:none">X</button></td></tr>`).join('');
+            <td><button onclick="db.clients.splice(${i},1);sync()" style="color:red;background:none;border:none;cursor:pointer;">X</button></td></tr>`).join('');
     }
 
     // --- GASTOS ---
@@ -447,14 +456,14 @@
         link.click();
     }
 
-    // --- FUNCIONES BASE ---
+    // --- COTIZADOR ---
     function addToQuote() {
         let n = document.getElementById('quote-item-name').value;
         let c = parseFloat(document.getElementById('quote-item-net').value);
         let q = parseInt(document.getElementById('quote-item-qty').value);
         if(!n || !c) return;
         quoteCart.push({nom: n, net: c, qty: q});
-        document.getElementById('quote-list').innerHTML = quoteCart.map((i,idx) => `<div class="flex" style="background:#1a1a1a;padding:10px;border-radius:5px;margin-bottom:5px"><span>${i.qty}x ${i.nom}</span><button onclick="quoteCart.splice(${idx},1);renderQuote()" style="color:red;background:none;border:none">X</button></div>`).join('');
+        document.getElementById('quote-list').innerHTML = quoteCart.map((i,idx) => `<div class="flex" style="background:rgba(0,0,0,0.3);padding:10px;border-radius:5px;margin-bottom:5px"><span>${i.qty}x ${i.nom}</span><button onclick="quoteCart.splice(${idx},1);renderQuote()" style="color:red;background:none;border:none;cursor:pointer;">X</button></div>`).join('');
     }
     function clearQuote() { quoteCart=[]; document.getElementById('quote-list').innerHTML=""; }
 
@@ -472,17 +481,44 @@
         w.document.close(); setTimeout(() => w.print(), 800);
     }
 
+    // --- INVENTARIO ---
     function addToInv() {
         let n = document.getElementById('inv-nom').value, c = parseFloat(document.getElementById('inv-cost').value), q = parseInt(document.getElementById('inv-qty').value);
         if(!n || isNaN(c)) return;
         db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
         sync(); document.getElementById('inv-nom').value="";
     }
+    
+    // RENDER INVENTARIO (CON PRECIOS CALCULADOS RESTAURADOS)
     function renderInv() {
-        document.getElementById('inv-render').innerHTML = db.inv.map((p, i) => `<div class="card"><b>${p.nom}</b> | Stock: ${p.stock}<br><small>Costo: $${p.cost.toFixed(2)}</small><br><button onclick="db.inv.splice(${i},1);sync()" class="btn-danger" style="padding:5px;font-size:10px;width:auto;margin-top:10px">Eliminar</button></div>`).join('');
+        document.getElementById('inv-render').innerHTML = db.inv.map((p, i) => {
+            let pPub = (p.cost * (1 + db.cfg.pub/100)).toFixed(2);
+            let pB2B = (p.cost * (1 + db.cfg.com/100)).toFixed(2);
+            let p6 = (p.cost * (1 + db.cfg.m6/100)).toFixed(2);
+            let p12 = (p.cost * (1 + db.cfg.m12/100)).toFixed(2);
+            let p24 = (p.cost * (1 + db.cfg.m24/100)).toFixed(2);
+            
+            return `
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <b style="font-size:16px;">${p.nom}</b>
+                    <span style="background:var(--primary); padding:2px 8px; border-radius:10px; font-size:11px;">Stock: ${p.stock}</span>
+                </div>
+                <small style="color:var(--text-muted); display:block; margin-top:5px;">Costo Neto: $${p.cost.toFixed(2)}</small>
+                
+                <div class="price-grid" style="margin-top:12px;">
+                    <div class="price-tag"><small>PUB</small><b>$${pPub}</b></div>
+                    <div class="price-tag"><small>B2B</small><b>$${pB2B}</b></div>
+                    <div class="price-tag"><small>6+</small><b>$${p6}</b></div>
+                    <div class="price-tag"><small>12+</small><b>$${p12}</b></div>
+                    <div class="price-tag"><small>24+</small><b>$${p24}</b></div>
+                </div>
+                
+                <button onclick="db.inv.splice(${i},1);sync()" class="btn-danger" style="padding:8px;font-size:11px;width:auto;margin-top:15px">🗑️ Eliminar</button>
+            </div>`;
+        }).join('');
     }
 
-    // --- FUNCIÓN RESTAURADA: REPORTE DE INVENTARIO ---
     function printInvReport() {
         let w = window.open('', '', 'width=800,height=600');
         let t = "<div style='font-family:Arial, sans-serif; padding:20px;'><h2 style='color:#630d16;'>Inventario Actual DrinKar</h2><table style='width:100%; border-collapse: collapse; text-align:left;'><thead><tr><th style='padding:10px; border-bottom:2px solid #630d16;'>Producto</th><th style='padding:10px; border-bottom:2px solid #630d16;'>Stock</th><th style='padding:10px; border-bottom:2px solid #630d16;'>Costo Neto</th></tr></thead><tbody>";
@@ -494,6 +530,7 @@
         setTimeout(() => w.print(), 500);
     }
 
+    // --- COMPRAS Y VENTAS ---
     function executePurchase() {
         let id = document.getElementById('buy-prod').value, q = parseInt(document.getElementById('buy-qty').value), c = parseFloat(document.getElementById('buy-cost').value), f = document.getElementById('buy-fact').checked, p = db.inv.find(x => x.id == id);
         if(!p || isNaN(q)) return;
@@ -522,6 +559,7 @@
     }
     function resetSale() { cart=[]; renderCart(); }
 
+    // --- CONFIGURACIÓN Y TEMAS ---
     function saveSettings() {
         db.cfg.pub = parseFloat(document.getElementById('cfg-pub').value);
         db.cfg.com = parseFloat(document.getElementById('cfg-com').value);
@@ -531,10 +569,11 @@
         sync(); alert("Márgenes guardados.");
     }
     
-    // --- FUNCIÓN RESTAURADA: GUARDAR COLORES ---
     function saveTheme() {
         db.cfg.colorP = document.getElementById('cfg-color-p').value;
         db.cfg.colorBG = document.getElementById('cfg-color-bg').value;
+        db.cfg.colorCard = document.getElementById('cfg-color-card').value;
+        db.cfg.colorText = document.getElementById('cfg-color-text').value;
         sync(); alert("Colores actualizados.");
     }
 
@@ -542,15 +581,19 @@
         const r = document.querySelector(':root'); 
         r.style.setProperty('--primary', db.cfg.colorP);
         r.style.setProperty('--bg', db.cfg.colorBG);
+        r.style.setProperty('--card-bg', db.cfg.colorCard);
+        r.style.setProperty('--text', db.cfg.colorText);
         
         if(document.getElementById('cfg-color-p')) document.getElementById('cfg-color-p').value = db.cfg.colorP;
         if(document.getElementById('cfg-color-bg')) document.getElementById('cfg-color-bg').value = db.cfg.colorBG;
+        if(document.getElementById('cfg-color-card')) document.getElementById('cfg-color-card').value = db.cfg.colorCard;
+        if(document.getElementById('cfg-color-text')) document.getElementById('cfg-color-text').value = db.cfg.colorText;
         
         document.getElementById('cfg-pub').value = db.cfg.pub; document.getElementById('cfg-com').value = db.cfg.com;
         document.getElementById('cfg-m6').value = db.cfg.m6; document.getElementById('cfg-m12').value = db.cfg.m12; document.getElementById('cfg-m24').value = db.cfg.m24;
     }
     
-    function hardReset() { if(confirm("¿BORRAR TODO?")) { dbRef.set(defaultDB); location.reload(); } }
+    function hardReset() { if(confirm("¿BORRAR TODO? Esto eliminará ventas, inventario, clientes y ajustes.")) { dbRef.set(defaultDB); location.reload(); } }
 </script>
 </body>
 </html>
