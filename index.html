@@ -315,11 +315,16 @@
 
     dbRef.on('value', (snap) => {
         db = snap.val() || defaultDB;
+        
+        // PREVENCIÓN DE ARREGLOS VACÍOS (AQUÍ ESTABA EL BUG QUE CONGELABA EL GUARDADO)
+        if(!db.inv) db.inv = [];
+        if(!db.mov) db.mov = [];
         if(!db.clients) db.clients = [];
         if(!db.expenses) db.expenses = [];
         if(!db.sim) db.sim = [];
         
         // Prevención si son bases de datos antiguas que no tenían estos colores
+        if(!db.cfg) db.cfg = defaultDB.cfg;
         if(!db.cfg.colorCard) db.cfg.colorCard = '#151515';
         if(!db.cfg.colorText) db.cfg.colorText = '#f8f9fa';
 
@@ -483,10 +488,13 @@
 
     // --- INVENTARIO ---
     function addToInv() {
-        let n = document.getElementById('inv-nom').value, c = parseFloat(document.getElementById('inv-cost').value), q = parseInt(document.getElementById('inv-qty').value);
+        let n = document.getElementById('inv-nom').value, 
+            c = parseFloat(document.getElementById('inv-cost').value), 
+            q = parseInt(document.getElementById('inv-qty').value) || 0; // Agregado fallback por si dejan el input vacío
         if(!n || isNaN(c)) return;
         db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
-        sync(); document.getElementById('inv-nom').value="";
+        sync(); 
+        document.getElementById('inv-nom').value="";
     }
     
     // RENDER INVENTARIO (CON PRECIOS CALCULADOS RESTAURADOS)
