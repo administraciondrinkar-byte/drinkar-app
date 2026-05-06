@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Suite V4.7 - Enterprise Elite</title>
+    <title>DrinKar Suite V4.8 - Enterprise Elite Plus</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -12,26 +12,26 @@
     <style>
         :root { --primary: #630d16; --bg: #0a0a0a; --card-bg: #151515; --text: #f8f9fa; --text-muted: #a0a0a0; --accent: #27ae60; --info: #2980b9; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: background 0.3s; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; transition: background 0.3s; }
         
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align:center; padding: 20px;}
         .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;}
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .header { padding: 30px 20px; text-align: center; border-bottom: 2px solid var(--primary); }
-        .nav-bar { background: var(--card-bg); display: flex; justify-content: space-between; padding: 10px; position: sticky; top: 0; z-index: 1000; overflow-x: auto; gap: 5px; }
-        .nav-item { color: var(--text-muted); text-decoration: none; font-size: 10px; text-align: center; flex: 1; min-width: 60px; }
+        .header { padding: 25px 20px; text-align: center; border-bottom: 2px solid var(--primary); }
+        .nav-bar { background: var(--card-bg); display: flex; justify-content: space-between; padding: 10px; position: sticky; top: 0; z-index: 1000; overflow-x: auto; gap: 8px; border-bottom: 1px solid #222; }
+        .nav-item { color: var(--text-muted); text-decoration: none; font-size: 9px; text-align: center; min-width: 55px; display: flex; flex-direction: column; align-items: center; }
         .nav-item.active { color: white; font-weight: bold; }
-        .nav-icon { font-size: 18px; display: block; margin-bottom: 5px; background: #222; padding: 8px; border-radius: 10px; }
-        .active .nav-icon { background: var(--primary); }
+        .nav-icon { font-size: 16px; background: #222; padding: 8px; border-radius: 10px; margin-bottom: 4px; transition: 0.3s; }
+        .active .nav-icon { background: var(--primary); transform: scale(1.1); }
 
-        .container { padding: 15px; max-width: 800px; margin: auto; }
+        .container { padding: 15px; max-width: 900px; margin: auto; }
         .card { background: var(--card-bg); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid #222; }
         
         label { display: block; font-size: 11px; color: var(--primary); margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
-        input, select { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 10px; color: white; margin-bottom: 15px; font-size: 14px; outline: none; }
+        input, select, textarea { width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 10px; color: white; margin-bottom: 15px; font-size: 14px; outline: none; font-family: inherit; }
         
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
         .btn-success { background: var(--accent); color: white; }
@@ -45,16 +45,13 @@
         .price-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
         .price-tag { background: #111; padding: 8px; border-radius: 5px; border-left: 3px solid var(--primary); }
         .price-tag small { font-size: 9px; color: var(--text-muted); display: block; }
-        .price-tag b { font-size: 13px; }
 
         .hidden { display: none; }
         .flex { display: flex; gap: 10px; }
         .flex > * { flex: 1; }
 
         .fancy-checkbox { display: flex; align-items: center; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid var(--primary); cursor: pointer; margin-bottom: 15px; transition: 0.3s;}
-        .fancy-checkbox:hover { background: #2a2a2a; }
-        .fancy-checkbox input { width: 24px; height: 24px; margin: 0 15px 0 0; accent-color: var(--accent); cursor: pointer; }
-        .fancy-checkbox span { font-size: 14px; font-weight: bold; color: white; }
+        .fancy-checkbox input { width: 22px; height: 22px; margin-right: 15px; accent-color: var(--accent); }
 
         #ticket-wrap { background: white; color: black; padding: 20px; width: 300px; margin: 20px auto; font-family: monospace; }
         #ticket-wrap * { color: black !important; }
@@ -63,21 +60,23 @@
 <body>
 
 <div id="loading">
-    <div class="spinner" id="spinner-icon"></div>
-    <p id="loading-text">Conectando DrinKar Cloud...</p>
+    <div class="spinner"></div>
+    <p>Sincronizando DrinKar Suite...</p>
 </div>
 
 <div class="header">
     <h1 id="brand-name">DRIN<span style="color:var(--primary)">KAR</span></h1>
-    <small style="color:var(--text-muted)">V4.7 ENTERPRISE EDITION</small>
+    <small style="color:var(--text-muted)">V4.8 ENTERPRISE ELITE PLUS</small>
 </div>
 
 <div class="nav-bar">
     <a href="#" class="nav-item active" onclick="showView('calc', this)"><span class="nav-icon">⚖️</span>CALC</a>
     <a href="#" class="nav-item" onclick="showView('quote', this)"><span class="nav-icon">📝</span>COTIZAR</a>
     <a href="#" class="nav-item" onclick="showView('inv', this)"><span class="nav-icon">📦</span>INV</a>
+    <a href="#" class="nav-item" onclick="showView('clients', this)"><span class="nav-icon">👥</span>CLIENTES</a>
     <a href="#" class="nav-item" onclick="showView('buy', this)"><span class="nav-icon">📥</span>COMPRA</a>
     <a href="#" class="nav-item" onclick="showView('pos', this)"><span class="nav-icon">🛒</span>VENTA</a>
+    <a href="#" class="nav-item" onclick="showView('exp', this)"><span class="nav-icon">💸</span>GASTOS</a>
     <a href="#" class="nav-item" onclick="showView('rep', this)"><span class="nav-icon">📈</span>REP</a>
     <a href="#" class="nav-item" onclick="showView('cfg', this)"><span class="nav-icon">⚙️</span>CFG</a>
 </div>
@@ -86,161 +85,164 @@
 
     <div id="view-calc" class="view">
         <div class="card">
-            <h3>Calculadora Rápida de Precios</h3>
-            <label>Costo Neto de Proveedor</label>
+            <h3>Calculadora Rápida</h3>
+            <label>Costo Neto</label>
             <input type="number" id="master-net" placeholder="0.00" oninput="runMasterCalc()">
             <div id="master-results" class="price-grid"></div>
         </div>
-
         <div class="card">
-            <h3>Simulador de Factura Proveedor</h3>
+            <h3>Simulador de Factura</h3>
             <div class="flex">
-                <div><label>Monto Neto</label><input type="number" id="sim-net" placeholder="0.00"></div>
+                <div><label>Neto</label><input type="number" id="sim-net" placeholder="0.00"></div>
                 <div><label>% IVA</label><input type="number" id="sim-iva-p" value="16"></div>
             </div>
-            <button class="btn btn-outline" onclick="addToSim()">+ Agregar a la lista</button>
-            <table style="margin-top:15px;">
-                <thead><tr><th>NETO</th><th>SUBTOTAL</th><th>IVA</th><th></th></tr></thead>
-                <tbody id="sim-list"></tbody>
-            </table>
-            <div id="sim-totals" style="text-align:right; padding-top:10px; border-top:1px solid var(--primary); margin-top:10px;"></div>
-            
-            <div class="flex" style="margin-top:15px;">
-                <button class="btn btn-info" onclick="printSimReport()">🖨️ Reporte</button>
-                <button class="btn btn-danger" onclick="clearSimReport()">🗑️ Vaciar</button>
-            </div>
+            <button class="btn btn-outline" onclick="addToSim()">+ Agregar a lista</button>
+            <table style="margin-top:15px;"><tbody id="sim-list"></tbody></table>
+            <div id="sim-totals" style="text-align:right; margin-top:10px;"></div>
         </div>
     </div>
 
     <div id="view-quote" class="view hidden">
         <div class="card">
-            <h3>Cotizaciones Multiproducto</h3>
-            <label>Datos del Cliente / Proyecto</label>
-            <input type="text" id="quote-name" placeholder="Ej. Boda 200 personas, Evento Corporativo...">
-            
-            <div style="border: 1px solid #333; padding: 15px; border-radius: 10px; margin-top: 15px; background: #111;">
-                <h4 style="margin: 0 0 10px 0; color: var(--primary);">Agregar Producto</h4>
-                <label>Nombre del Producto</label>
-                <input type="text" id="quote-item-name" placeholder="Ej. Tequila Don Julio 70">
-                
+            <h3>Nueva Cotización</h3>
+            <label>Cliente / Evento</label>
+            <input type="text" id="quote-name" placeholder="Ej. Boda de Carlos">
+            <div style="background: #111; padding: 15px; border-radius: 10px;">
+                <label>Producto</label><input type="text" id="quote-item-name">
                 <div class="flex">
-                    <div><label>Costo Neto Unitario</label><input type="number" id="quote-item-net" placeholder="0.00"></div>
+                    <div><label>Costo Neto</label><input type="number" id="quote-item-net"></div>
                     <div><label>Cantidad</label><input type="number" id="quote-item-qty" value="1"></div>
                 </div>
-                
-                <button class="btn btn-outline" onclick="addToQuote()">+ Agregar a la Cotización</button>
+                <button class="btn btn-outline" onclick="addToQuote()">+ Agregar Item</button>
             </div>
-
-            <div id="quote-list" style="margin-top: 15px; padding-top: 5px;"></div>
-
-            <label class="fancy-checkbox" style="margin-top: 20px;">
+            <div id="quote-list" style="margin: 15px 0;"></div>
+            <label class="fancy-checkbox">
                 <input type="checkbox" id="quote-b2b">
-                <span>🏢 Solo Precio Público y B2B (Modo Comercial)</span>
+                <span>🏢 Solo Público y B2B (Modo Comercial)</span>
             </label>
-            
-            <div class="flex" style="margin-top: 15px;">
-                <button class="btn btn-info" onclick="printQuoteReport()">🖨️ Generar Documento Formal</button>
-                <button class="btn btn-danger" onclick="clearQuote()">🗑️ Vaciar</button>
+            <div class="flex">
+                <button class="btn btn-info" onclick="printQuoteReport()">🖨️ Imprimir</button>
+                <button class="btn btn-danger" onclick="clearQuote()">🗑️ Limpiar</button>
             </div>
         </div>
     </div>
 
     <div id="view-inv" class="view hidden">
         <div class="card">
-            <h3>Agregar al Inventario</h3>
-            <label>Nombre del Producto</label>
-            <input type="text" id="inv-nom" placeholder="Ej. Whisky 750ml">
+            <h3>Registro de Producto</h3>
+            <label>Nombre</label><input type="text" id="inv-nom">
             <div class="flex">
-                <div><label>Costo Neto</label><input type="number" id="inv-cost" placeholder="0.00"></div>
-                <div><label>Stock</label><input type="number" id="inv-qty" value="0"></div>
+                <div><label>Costo Neto</label><input type="number" id="inv-cost"></div>
+                <div><label>Stock Inicial</label><input type="number" id="inv-qty" value="0"></div>
             </div>
-            <button class="btn btn-primary" onclick="addToInv()">Guardar en la Nube</button>
+            <button class="btn btn-primary" onclick="addToInv()">Guardar Producto</button>
         </div>
-        <button class="btn btn-info" onclick="printInvReport()">🖨️ Generar Reporte de Inventario</button>
         <div id="inv-render"></div>
+    </div>
+
+    <div id="view-clients" class="view hidden">
+        <div class="card">
+            <h3>Directorio de Clientes</h3>
+            <label>Nombre Completo</label><input type="text" id="cli-nom">
+            <div class="flex">
+                <div><label>Teléfono</label><input type="tel" id="cli-tel"></div>
+                <div><label>Correo</label><input type="email" id="cli-mail"></div>
+            </div>
+            <button class="btn btn-primary" onclick="addClient()">Registrar Cliente</button>
+        </div>
+        <div class="card">
+            <table>
+                <thead><tr><th>Nombre</th><th>Contacto</th><th></th></tr></thead>
+                <tbody id="cli-list"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="view-buy" class="view hidden">
         <div class="card">
-            <h3>Registrar Compra (Surtido)</h3>
+            <h3>Entrada de Mercancía</h3>
             <label>Producto</label><select id="buy-prod"></select>
             <div class="flex">
                 <div><label>Cantidad</label><input type="number" id="buy-qty"></div>
-                <div><label>Costo Neto Unitario</label><input type="number" id="buy-cost"></div>
+                <div><label>Costo Actualizado</label><input type="number" id="buy-cost"></div>
             </div>
-            
-            <label class="fancy-checkbox">
-                <input type="checkbox" id="buy-fact">
-                <span>📑 Compra Facturada (Registra IVA)</span>
-            </label>
-
-            <button class="btn btn-primary" onclick="executePurchase()">Finalizar Surtido</button>
+            <label class="fancy-checkbox"><input type="checkbox" id="buy-fact"><span>📑 Compra Facturada</span></label>
+            <button class="btn btn-primary" onclick="executePurchase()">Finalizar Compra</button>
         </div>
     </div>
 
     <div id="view-pos" class="view hidden">
         <div id="pos-ui">
             <div class="card">
-                <h3>Venta Directa</h3>
+                <h3>Venta Nueva</h3>
                 <label>Producto</label><select id="pos-prod"></select>
                 <div class="flex">
-                    <div><label>Cantidad</label><input type="number" id="pos-qty" value="1"></div>
-                    <div><label>Precio Neto Venta</label><input type="number" id="pos-price"></div>
+                    <div><label>Cant.</label><input type="number" id="pos-qty" value="1"></div>
+                    <div><label>Precio Venta</label><input type="number" id="pos-price"></div>
                 </div>
-                <button class="btn btn-outline" onclick="addToCart()">Agregar al Carrito</button>
+                <button class="btn btn-outline" onclick="addToCart()">Al Carrito</button>
             </div>
-            <div class="card" id="cart-container">
-                <h3>Carrito</h3>
+            <div class="card">
                 <div id="cart-list"></div>
-                <div style="margin-top:15px; border-top:1px solid #444; padding-top:10px;">
-                    
-                    <label class="fancy-checkbox">
-                        <input type="checkbox" id="pos-fact">
-                        <span>📑 Venta Facturada (Registra IVA)</span>
-                    </label>
-
-                    <h2 id="cart-total" style="text-align:right; color:var(--accent)">$0.00</h2>
-                    <button class="btn btn-success" onclick="finalizeSale()">Cobrar y Generar Ticket</button>
-                </div>
+                <label class="fancy-checkbox" style="margin-top:15px;"><input type="checkbox" id="pos-fact"><span>📑 Venta Facturada</span></label>
+                <h2 id="cart-total" style="text-align:right; color:var(--accent)">$0.00</h2>
+                <button class="btn btn-success" onclick="finalizeSale()">Cobrar</button>
             </div>
         </div>
-
         <div id="ticket-view" class="hidden">
             <div id="ticket-wrap">
-                <center><h2>DRINKAR</h2><p id="t-fecha" style="font-size:10px;"></p></center>
-                <table style="width:100%; font-size:11px; margin-top:10px;">
-                    <thead><tr><th align="left">Cant</th><th align="left">Item</th><th align="right">Total</th></tr></thead>
-                    <tbody id="t-items"></tbody>
-                </table>
-                <div id="t-desglose" style="text-align:right; font-size:10px; margin-top:10px;"></div>
-                <h3 id="t-total-final" style="text-align:right; border-top:1px solid black; padding-top:5px;"></h3>
-                <center style="margin-top:20px; font-size:9px;">Gracias por su compra</center>
+                <center><h2>DRINKAR</h2><p id="t-fecha"></p></center>
+                <table style="width:100%"><tbody id="t-items"></tbody></table>
+                <div id="t-desglose" style="text-align:right; font-size:10px;"></div>
+                <h3 id="t-total-final" style="text-align:right"></h3>
             </div>
-            <button class="btn btn-primary" onclick="downloadTicket()">Guardar Ticket (Imagen)</button>
+            <button class="btn btn-primary" onclick="downloadTicket()">Descargar Imagen</button>
             <button class="btn btn-outline" onclick="resetSale()">Nueva Venta</button>
+        </div>
+    </div>
+
+    <div id="view-exp" class="view hidden">
+        <div class="card">
+            <h3>Registro de Gastos / Egresos</h3>
+            <label>Concepto del Gasto</label><input type="text" id="exp-desc" placeholder="Renta, Luz, Publicidad...">
+            <div class="flex">
+                <div><label>Monto Total</label><input type="number" id="exp-total" placeholder="0.00"></div>
+                <div><label>Categoría</label>
+                    <select id="exp-cat">
+                        <option>Operativo</option><option>Administrativo</option><option>Marketing</option><option>Otros</option>
+                    </select>
+                </div>
+            </div>
+            <label class="fancy-checkbox"><input type="checkbox" id="exp-fact"><span>📑 Gasto Deducible (IVA)</span></label>
+            <button class="btn btn-danger" onclick="addExpense()">Registrar Gasto</button>
+        </div>
+        <div class="card">
+            <h3>Gastos del Mes</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>IVA</th></tr></thead>
+                    <tbody id="exp-list"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <div id="view-rep" class="view hidden">
         <div class="flex">
-            <div class="card" style="margin-bottom: 10px;">
-                <label>Utilidad Neta</label>
-                <h2 id="rep-gain" style="color:var(--accent); margin:0;">$0.00</h2>
-            </div>
-            <div class="card" style="margin-bottom: 10px;">
-                <label>Balance IVA</label>
-                <h2 id="rep-iva-bal" style="margin:0;">$0.00</h2>
-                <small id="rep-iva-detail" style="font-size:10px; color:var(--text-muted)"></small>
-            </div>
+            <div class="card"><label>Utilidad Neta</label><h2 id="rep-gain" style="color:var(--accent)">$0.00</h2></div>
+            <div class="card"><label>Balance IVA</label><h2 id="rep-iva-bal">$0.00</h2></div>
+        </div>
+        
+        <div class="flex" style="margin-bottom: 20px;">
+            <button class="btn btn-info" onclick="downloadFullReport()">📥 Reporte General (CSV)</button>
+            <button class="btn btn-primary" onclick="downloadIVAReport()">📥 Reporte de IVA (CSV)</button>
         </div>
 
         <div class="card">
-            <h3>Movimientos</h3>
+            <h3>Historial de Movimientos</h3>
             <div style="overflow-x:auto;">
                 <table>
-                    <thead>
-                        <tr><th>Fecha</th><th>Tipo</th><th>Detalle (Pzas)</th><th>Total</th><th>Fact</th></tr>
-                    </thead>
+                    <thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Total</th></tr></thead>
                     <tbody id="rep-list"></tbody>
                 </table>
             </div>
@@ -249,39 +251,25 @@
 
     <div id="view-cfg" class="view hidden">
         <div class="card">
-            <h3>Configuración de Márgenes (%)</h3>
+            <h3>Márgenes (%)</h3>
             <div class="flex">
-                <div><label>Público</label><input type="number" id="cfg-pub"></div>
+                <div><label>Pub</label><input type="number" id="cfg-pub"></div>
                 <div><label>B2B</label><input type="number" id="cfg-com"></div>
             </div>
             <div class="flex">
-                <div><label>6+ Pzas</label><input type="number" id="cfg-m6"></div>
-                <div><label>12+ Pzas</label><input type="number" id="cfg-m12"></div>
-                <div><label>24+ Pzas</label><input type="number" id="cfg-m24"></div>
+                <div><label>6+</label><input type="number" id="cfg-m6"></div>
+                <div><label>12+</label><input type="number" id="cfg-m12"></div>
+                <div><label>24+</label><input type="number" id="cfg-m24"></div>
             </div>
-            <button class="btn btn-primary" onclick="saveSettings()">Guardar Márgenes</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Guardar</button>
         </div>
-
-        <div class="card">
-            <h3>Personalización Visual</h3>
-            <div class="flex">
-                <div><label>Color Principal</label><input type="color" id="cfg-color-p" value="#630d16"></div>
-                <div><label>Color Fondo</label><input type="color" id="cfg-color-bg" value="#0a0a0a"></div>
-            </div>
-            <button class="btn btn-info" onclick="saveTheme()">Aplicar Colores</button>
-        </div>
-
-        <div class="card" style="border-color: #c0392b;">
-            <h3 style="color:#c0392b">Reinicio de Sistema</h3>
-            <p style="font-size:10px;">Borra todos los datos (Productos, Ventas, Gastos).</p>
-            <button class="btn btn-danger" onclick="hardReset()">REINICIAR TODO</button>
-        </div>
+        <button class="btn btn-danger" onclick="hardReset()">REINICIAR TODO</button>
     </div>
 
 </div>
 
 <script>
-    // --- CREDENCIALES ---
+    // --- FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyC2OpCZLRUbZJB16pkglHxOK2YiVzqffKQ",
         authDomain: "drinkar-cc5ab.firebaseapp.com",
@@ -291,33 +279,27 @@
         messagingSenderId: "546531961373",
         appId: "1:546531961373:web:4d88f6bceb506d640df4f4"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const dbRef = firebase.database().ref('drinkar_cloud_v43');
+    const dbRef = firebase.database().ref('drinkar_cloud_v48');
 
     const defaultDB = {
-        inv: [], mov: [], sim: [],
+        inv: [], mov: [], sim: [], clients: [], expenses: [],
         cfg: { pub: 15, com: 13.5, m6: 12, m12: 10, m24: 8, colorP: '#630d16', colorBG: '#0a0a0a' }
     };
     let db = defaultDB;
     let cart = [];
     let quoteCart = [];
 
-    // --- TIEMPO REAL ---
     dbRef.on('value', (snap) => {
         db = snap.val() || defaultDB;
-        if(!db.cfg) db.cfg = defaultDB.cfg;
-        if(db.cfg.m6 === undefined) { db.cfg.m6 = 12; db.cfg.m12 = 10; db.cfg.m24 = 8; }
-        if(!db.sim) db.sim = [];
-        if(!db.inv) db.inv = [];
-        if(!db.mov) db.mov = [];
+        if(!db.clients) db.clients = [];
+        if(!db.expenses) db.expenses = [];
         document.getElementById('loading').style.display = 'none';
         applyTheme();
         refreshUI();
     });
 
     function sync() { dbRef.set(db); }
-    function refreshUI() { renderInv(); renderSim(); renderRep(); populateSelects(); }
     function showView(v, el) {
         document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
         document.getElementById('view-'+v).classList.remove('hidden');
@@ -325,230 +307,180 @@
         if(el) el.classList.add('active');
     }
 
-    // --- CALCULADORA MAESTRA ---
     function runMasterCalc() {
         let net = parseFloat(document.getElementById('master-net').value) || 0;
-        let p = net * (1 + (db.cfg.pub/100));
-        let b = net * (1 + (db.cfg.com/100));
-        let p6 = net * (1 + (db.cfg.m6/100));
-        let p12 = net * (1 + (db.cfg.m12/100));
-        let p24 = net * (1 + (db.cfg.m24/100));
-        
-        document.getElementById('master-results').innerHTML = `
-            <div class="price-tag"><small>PÚBLICO</small><b>$${p.toFixed(2)}</b></div>
-            <div class="price-tag"><small>B2B/COMERCIO</small><b>$${b.toFixed(2)}</b></div>
-            <div class="price-tag"><small>6+ PZAS</small><b>$${p6.toFixed(2)}</b></div>
-            <div class="price-tag"><small>12+ PZAS</small><b>$${p12.toFixed(2)}</b></div>
-            <div class="price-tag"><small>24+ PZAS</small><b>$${p24.toFixed(2)}</b></div>
-        `;
+        let res = document.getElementById('master-results');
+        const calc = (m) => (net * (1+(m/100))).toFixed(2);
+        res.innerHTML = `
+            <div class="price-tag"><small>PÚBLICO</small><b>$${calc(db.cfg.pub)}</b></div>
+            <div class="price-tag"><small>B2B</small><b>$${calc(db.cfg.com)}</b></div>
+            <div class="price-tag"><small>6+</small><b>$${calc(db.cfg.m6)}</b></div>
+            <div class="price-tag"><small>12+</small><b>$${calc(db.cfg.m12)}</b></div>
+            <div class="price-tag"><small>24+</small><b>$${calc(db.cfg.m24)}</b></div>`;
     }
 
-    // --- COTIZADOR MULTIPRODUCTO ---
+    // --- CLIENTES ---
+    function addClient() {
+        let n = document.getElementById('cli-nom').value;
+        if(!n) return;
+        db.clients.push({ nom: n, tel: document.getElementById('cli-tel').value, mail: document.getElementById('cli-mail').value });
+        sync(); document.getElementById('cli-nom').value = "";
+    }
+    function renderClients() {
+        document.getElementById('cli-list').innerHTML = db.clients.map((c, i) => `
+            <tr><td><b>${c.nom}</b></td><td>${c.tel}<br><small>${c.mail}</small></td>
+            <td><button onclick="db.clients.splice(${i},1);sync()" style="color:red;background:none;border:none">X</button></td></tr>`).join('');
+    }
+
+    // --- GASTOS ---
+    function addExpense() {
+        let d = document.getElementById('exp-desc').value;
+        let t = parseFloat(document.getElementById('exp-total').value);
+        let f = document.getElementById('exp-fact').checked;
+        if(!d || !t) return;
+        let iva = f ? (t - (t/1.16)) : 0;
+        db.expenses.push({ fecha: new Date().toLocaleDateString(), desc: d, total: t, iva: iva, cat: document.getElementById('exp-cat').value, fact: f });
+        sync(); alert("Gasto registrado");
+    }
+    function renderExpenses() {
+        document.getElementById('exp-list').innerHTML = [...db.expenses].reverse().map(e => `
+            <tr><td>${e.fecha}</td><td>${e.desc}</td><td>$${e.total.toFixed(2)}</td><td>$${e.iva.toFixed(2)}</td></tr>`).join('');
+    }
+
+    // --- REPORTES Y DESCARGAS ---
+    function refreshUI() {
+        renderInv(); renderSim(); renderRep(); renderClients(); renderExpenses();
+        let ops = db.inv.map(p => `<option value="${p.id}">${p.nom} (${p.stock})</option>`).join('');
+        document.getElementById('buy-prod').innerHTML = ops; document.getElementById('pos-prod').innerHTML = ops;
+    }
+
+    function renderRep() {
+        let g = 0, iF = 0, iC = 0, h = "";
+        // Ventas y Compras
+        db.mov.forEach(m => {
+            if(m.tipo === 'VENTA') { g += (m.gain || 0); if(m.facturado) iC += (m.iva || 0); }
+            if(m.tipo === 'COMPRA' && m.facturado) iF += (m.iva || 0);
+            h = `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.detalle}</td><td>$${m.total.toFixed(2)}</td></tr>` + h;
+        });
+        // Restar Gastos de utilidad y sumar IVA a favor si facturan
+        db.expenses.forEach(e => {
+            g -= e.total;
+            if(e.fact) iF += e.iva;
+            h = `<tr><td>${e.fecha}</td><td>GASTO</td><td>${e.desc}</td><td>$${e.total.toFixed(2)}</td></tr>` + h;
+        });
+        document.getElementById('rep-gain').innerText = `$${g.toFixed(2)}`;
+        document.getElementById('rep-iva-bal').innerText = `$${(iF-iC).toFixed(2)}`;
+        document.getElementById('rep-iva-bal').style.color = (iF-iC) >= 0 ? 'var(--accent)' : '#c0392b';
+        document.getElementById('rep-list').innerHTML = h;
+    }
+
+    function downloadFullReport() {
+        let csv = "Fecha,Tipo,Detalle,Total,Facturado,IVA\n";
+        db.mov.forEach(m => csv += `${m.fecha},${m.tipo},"${m.detalle}",${m.total},${m.facturado?'SI':'NO'},${m.iva.toFixed(2)}\n`);
+        db.expenses.forEach(e => csv += `${e.fecha},GASTO,"${e.desc}",${e.total},${e.fact?'SI':'NO'},${e.iva.toFixed(2)}\n`);
+        downloadCSV(csv, "Reporte_General_DrinKar.csv");
+    }
+
+    function downloadIVAReport() {
+        let csv = "Fecha,Tipo,Concepto,Total,IVA (16%)\n";
+        let iF = 0, iC = 0;
+        db.mov.forEach(m => {
+            if(m.facturado) {
+                csv += `${m.fecha},${m.tipo},"${m.detalle}",${m.total},${m.iva.toFixed(2)}\n`;
+                m.tipo === 'VENTA' ? iC += m.iva : iF += m.iva;
+            }
+        });
+        db.expenses.forEach(e => {
+            if(e.fact) {
+                csv += `${e.fecha},GASTO,"${e.desc}",${e.total},${e.iva.toFixed(2)}\n`;
+                iF += e.iva;
+            }
+        });
+        csv += `\n,,,TOTAL IVA FAVOR,${iF.toFixed(2)}\n,,,TOTAL IVA CARGO,${iC.toFixed(2)}\n,,,BALANCE,${(iF-iC).toFixed(2)}`;
+        downloadCSV(csv, "Reporte_IVA_DrinKar.csv");
+    }
+
+    function downloadCSV(csv, name) {
+        let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", name);
+        link.click();
+    }
+
+    // --- FUNCIONES BASE ---
     function addToQuote() {
         let n = document.getElementById('quote-item-name').value;
         let c = parseFloat(document.getElementById('quote-item-net').value);
-        let q = parseInt(document.getElementById('quote-item-qty').value) || 1;
-        if(!n || isNaN(c)) return alert("Faltan datos del producto.");
+        let q = parseInt(document.getElementById('quote-item-qty').value);
+        if(!n || !c) return;
         quoteCart.push({nom: n, net: c, qty: q});
-        renderQuote();
-        document.getElementById('quote-item-name').value = '';
-        document.getElementById('quote-item-net').value = '';
-        document.getElementById('quote-item-qty').value = '1';
+        document.getElementById('quote-list').innerHTML = quoteCart.map((i,idx) => `<div class="flex" style="background:#1a1a1a;padding:10px;border-radius:5px;margin-bottom:5px"><span>${i.qty}x ${i.nom}</span><button onclick="quoteCart.splice(${idx},1);renderQuote()" style="color:red;background:none;border:none">X</button></div>`).join('');
     }
-
-    function renderQuote() {
-        let h = "";
-        quoteCart.forEach((item, i) => {
-            h += `<div class="flex" style="justify-content:space-between; align-items:center; font-size:12px; margin-bottom:8px; background:#1a1a1a; padding:10px; border-radius:5px; border-left: 3px solid var(--primary);">
-                    <span><b>${item.qty}x</b> ${item.nom} <small>($${item.net.toFixed(2)})</small></span>
-                    <button onclick="quoteCart.splice(${i},1); renderQuote()" style="background:#c0392b; color:white; border:none; padding:5px; border-radius:5px; cursor:pointer;">X</button>
-                  </div>`;
-        });
-        document.getElementById('quote-list').innerHTML = h;
-    }
-
-    function clearQuote() { if(confirm("¿Vaciar cotización?")) { quoteCart = []; renderQuote(); } }
+    function clearQuote() { quoteCart=[]; document.getElementById('quote-list').innerHTML=""; }
 
     function printQuoteReport() {
-        if(quoteCart.length === 0) return alert("Cotización vacía.");
-        let name = document.getElementById('quote-name').value || "Cliente General";
+        if(!quoteCart.length) return;
+        let w = window.open('','','width=1000');
         let incB2B = document.getElementById('quote-b2b').checked;
-        let date = new Date().toLocaleDateString();
-        let w = window.open('', '', 'width=1000,height=800');
-        
-        let headerRow = incB2B ? 
-            `<tr><th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc;">Producto / Concepto</th>
-                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Precio Público</th>
-                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Precio B2B / Aliados</th></tr>` :
-            `<tr><th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc;">Producto / Concepto</th>
-                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Público (1-5)</th>
-                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Medio Mayoreo (6+)</th>
-                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Mayoreo (12+)</th>
-                 <th style="padding:12px; background:#f4f4f4; border-bottom:2px solid #ccc; text-align:center;">Gran Mayoreo (24+)</th></tr>`;
-
-        let rows = "";
-        quoteCart.forEach(item => {
-            let p = item.net * (1 + (db.cfg.pub/100));
-            if(incB2B) {
-                let pb2b = item.net * (1 + (db.cfg.com/100));
-                rows += `<tr><td style="padding:12px; border-bottom:1px solid #ddd;">${item.qty}x <b>${item.nom}</b></td>
-                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center;">$${p.toFixed(2)}</td>
-                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center; font-weight:bold; color:#630d16;">$${pb2b.toFixed(2)}</td></tr>`;
-            } else {
-                rows += `<tr><td style="padding:12px; border-bottom:1px solid #ddd;">${item.qty}x <b>${item.nom}</b></td>
-                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center;">$${p.toFixed(2)}</td>
-                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center;">$${(item.net*(1+db.cfg.m6/100)).toFixed(2)}</td>
-                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center;">$${(item.net*(1+db.cfg.m12/100)).toFixed(2)}</td>
-                         <td style="padding:12px; border-bottom:1px solid #ddd; text-align:center;">$${(item.net*(1+db.cfg.m24/100)).toFixed(2)}</td></tr>`;
-            }
-        });
-
-        let t = `
-            <div style="font-family: Arial; padding: 40px; color: #333; max-width: 950px; margin:auto;">
-                <table style="width: 100%; border-bottom: 4px solid #630d16; padding-bottom: 20px; margin-bottom: 30px;">
-                    <tr>
-                        <td style="width: 35%; vertical-align: middle;">
-                            <img src="drinkar_ofi-05.png" alt="DrinKar Logo" style="max-width: 220px; height: auto;">
-                        </td>
-                        <td style="width: 65%; text-align: right; vertical-align: middle;">
-                            <h1 style="color: #630d16; margin: 0; font-size: 32px; text-transform: uppercase;">Propuesta Comercial</h1>
-                            <p style="margin: 10px 0 0 0; font-size: 16px;">Fecha: <b>${date}</b></p>
-                            <p style="margin: 5px 0 0 0; font-size: 16px;">Atención a: <b>${name}</b></p>
-                        </td>
-                    </tr>
-                </table>
-                <table style='width:100%; border-collapse:collapse; font-size: 14px;'>
-                    <thead>${headerRow}</thead>
-                    <tbody>${rows}</tbody>
-                </table>
-                <div style="margin-top: 50px; font-size: 12px; color: #666; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
-                    <p>* Precios en MXN sujetos a cambio sin previo aviso. Generado por DrinKar Suite Enterprise.</p>
-                </div>
-            </div>`;
-        w.document.write(t); w.document.close();
-        setTimeout(() => { w.print(); }, 800);
+        let rows = quoteCart.map(i => {
+            let p = i.net * (1+(db.cfg.pub/100));
+            return incB2B ? `<tr><td>${i.qty}x ${i.nom}</td><td>$${p.toFixed(2)}</td><td>$${(i.net*(1+(db.cfg.com/100))).toFixed(2)}</td></tr>` : 
+            `<tr><td>${i.qty}x ${i.nom}</td><td>$${p.toFixed(2)}</td><td>$${(i.net*(1+db.cfg.m6/100)).toFixed(2)}</td><td>$${(i.net*(1+db.cfg.m12/100)).toFixed(2)}</td><td>$${(i.net*(1+db.cfg.m24/100)).toFixed(2)}</td></tr>`;
+        }).join('');
+        let header = incB2B ? `<th>Producto</th><th>Público</th><th>B2B</th>` : `<th>Producto</th><th>Público</th><th>6+</th><th>12+</th><th>24+</th>`;
+        w.document.write(`<div style="font-family:Arial;padding:40px"><img src="drinkar_ofi-05.png" style="max-width:250px"><h1 style="color:#630d16">Propuesta Comercial</h1><p>Atención: ${document.getElementById('quote-name').value}</p><table border="1" style="width:100%;border-collapse:collapse"><thead>${header}</thead><tbody>${rows}</tbody></table></div>`);
+        w.document.close(); setTimeout(() => w.print(), 800);
     }
 
-    // --- SIMULADOR ---
-    function addToSim() {
-        let val = parseFloat(document.getElementById('sim-net').value);
-        if(!val) return;
-        db.sim.push({ net: val, sub: val/1.16, iva: val - (val/1.16) });
-        sync(); document.getElementById('sim-net').value = "";
-    }
-    function renderSim() {
-        let h = ""; let tn=0, ts=0, ti=0;
-        db.sim.forEach((s, i) => {
-            tn+=s.net; ts+=s.sub; ti+=s.iva;
-            h += `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td><td><button onclick="delSim(${i})" style="color:red; background:none; border:none;">X</button></td></tr>`;
-        });
-        document.getElementById('sim-list').innerHTML = h;
-        document.getElementById('sim-totals').innerHTML = `<b>TOTAL NETO: $${tn.toFixed(2)}</b><br><small>Sub: $${ts.toFixed(2)} | IVA: $${ti.toFixed(2)}</small>`;
-    }
-    function delSim(i) { db.sim.splice(i,1); sync(); }
-    function printSimReport() {
-        let w = window.open('', '', 'width=800,height=600');
-        let t = "<h2>Simulador Factura DrinKar</h2><table border='1' style='width:100%; border-collapse:collapse;'><thead><tr><th>Neto</th><th>Subtotal</th><th>IVA</th></tr></thead><tbody>";
-        let tn=0, ts=0, ti=0;
-        db.sim.forEach(s => { tn+=s.net; ts+=s.sub; ti+=s.iva; t+= `<tr><td>$${s.net.toFixed(2)}</td><td>$${s.sub.toFixed(2)}</td><td>$${s.iva.toFixed(2)}</td></tr>`; });
-        w.document.write(t + `</tbody></table><h3>TOTAL: $${tn.toFixed(2)}</h3>`); w.print();
-    }
-    function clearSimReport() { if(confirm("¿Vaciar?")) { db.sim = []; sync(); } }
-
-    // --- INVENTARIO ---
     function addToInv() {
-        let n = document.getElementById('inv-nom').value, c = parseFloat(document.getElementById('inv-cost').value), q = parseInt(document.getElementById('inv-qty').value) || 0;
-        if(!n || isNaN(c)) return alert("Faltan datos.");
+        let n = document.getElementById('inv-nom').value, c = parseFloat(document.getElementById('inv-cost').value), q = parseInt(document.getElementById('inv-qty').value);
+        if(!n || isNaN(c)) return;
         db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
-        sync(); document.getElementById('inv-nom').value=""; document.getElementById('inv-cost').value="";
+        sync(); document.getElementById('inv-nom').value="";
     }
     function renderInv() {
-        let h = "";
-        db.inv.forEach((p, i) => {
-            h += `<div class="card">
-                <div class="flex"><b>${p.nom}</b> <span style="color:var(--accent)">STOCK: ${p.stock}</span></div>
-                <div class="price-grid">
-                    <div class="price-tag"><small>COSTO</small><b>$${p.cost.toFixed(2)}</b></div>
-                    <div class="price-tag"><small>PÚBLICO</small><b>$${(p.cost*(1+db.cfg.pub/100)).toFixed(2)}</b></div>
-                    <div class="price-tag"><small>B2B</small><b>$${(p.cost*(1+db.cfg.com/100)).toFixed(2)}</b></div>
-                </div>
-                <button onclick="delInv(${i})" class="btn-danger" style="margin-top:10px; padding:5px; font-size:10px;">Eliminar</button>
-            </div>`;
-        });
-        document.getElementById('inv-render').innerHTML = h;
-    }
-    function delInv(i) { if(confirm("¿Borrar?")) { db.inv.splice(i,1); sync(); } }
-    function printInvReport() {
-        let w = window.open('', '', 'width=800,height=600');
-        let t = "<h2>Inventario DrinKar</h2><table border='1' style='width:100%;'><thead><tr><th>Producto</th><th>Stock</th><th>Costo</th></tr></thead><tbody>";
-        db.inv.forEach(p => { t += `<tr><td>${p.nom}</td><td>${p.stock}</td><td>$${p.cost.toFixed(2)}</td></tr>`; });
-        w.document.write(t + "</tbody></table>"); w.print();
+        document.getElementById('inv-render').innerHTML = db.inv.map((p, i) => `<div class="card"><b>${p.nom}</b> | Stock: ${p.stock}<br><small>Costo: $${p.cost.toFixed(2)}</small><br><button onclick="db.inv.splice(${i},1);sync()" class="btn-danger" style="padding:5px;font-size:10px;width:auto;margin-top:10px">Eliminar</button></div>`).join('');
     }
 
-    // --- COMPRA / POS ---
-    function populateSelects() {
-        let op = db.inv.map(p => `<option value="${p.id}">${p.nom} (${p.stock})</option>`).join('');
-        document.getElementById('buy-prod').innerHTML = op; document.getElementById('pos-prod').innerHTML = op;
-    }
     function executePurchase() {
         let id = document.getElementById('buy-prod').value, q = parseInt(document.getElementById('buy-qty').value), c = parseFloat(document.getElementById('buy-cost').value), f = document.getElementById('buy-fact').checked, p = db.inv.find(x => x.id == id);
         if(!p || isNaN(q)) return;
         p.stock += q; if(c) p.cost = c;
         let tot = (c||p.cost)*q;
-        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'COMPRA', detalle: `${q} x ${p.nom}`, total: tot, facturado: f, iva: f ? tot-(tot/1.16) : 0 });
-        sync(); alert("Inventario Actualizado");
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'COMPRA', detalle: `${q} x ${p.nom}`, total: tot, facturado: f, iva: f?tot-(tot/1.16):0 });
+        sync(); alert("Stock actualizado");
     }
+
     function addToCart() {
         let id = document.getElementById('pos-prod').value, q = parseInt(document.getElementById('pos-qty').value), pr = parseFloat(document.getElementById('pos-price').value), p = db.inv.find(x => x.id == id);
-        if(!p || isNaN(pr)) return alert("Precio inválido.");
-        if(p.stock < q) return alert("Sin stock.");
-        cart.push({ id: p.id, nom: p.nom, q, pr, total: pr*q, cost: p.cost*q }); renderCart();
+        if(!p || isNaN(pr)) return;
+        cart.push({ id: p.id, nom: p.nom, q, pr, total: pr*q, cost: p.cost*q });
+        renderCart();
     }
     function renderCart() {
-        let t = 0;
-        document.getElementById('cart-list').innerHTML = cart.map(c => { t+=c.total; return `<div class="flex"><span>${c.q} x ${c.nom}</span> <b>$${c.total.toFixed(2)}</b></div>`; }).join('');
+        let t = 0; document.getElementById('cart-list').innerHTML = cart.map(c => { t+=c.total; return `<div>${c.q} x ${c.nom} = $${c.total.toFixed(2)}</div>` }).join('');
         document.getElementById('cart-total').innerText = `$${t.toFixed(2)}`;
     }
     function finalizeSale() {
         if(!cart.length) return;
-        let f = document.getElementById('pos-fact').checked, tt = 0, tc = 0, h = "", res = cart.map(c => `${c.q} x ${c.nom}`).join(' | ');
-        cart.forEach(c => { tt+=c.total; tc+=c.cost; db.inv.find(x => x.id == c.id).stock -= c.q; h += `<tr><td>${c.q}</td><td>${c.nom}</td><td align="right">$${c.total.toFixed(2)}</td></tr>`; });
-        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'VENTA', detalle: res, total: tt, gain: tt-tc, facturado: f, iva: f ? tt-(tt/1.16) : 0 });
-        document.getElementById('t-fecha').innerText = new Date().toLocaleString(); document.getElementById('t-items').innerHTML = h;
-        document.getElementById('t-total-final').innerText = `TOTAL: $${tt.toFixed(2)}`;
-        document.getElementById('t-desglose').innerHTML = f ? `Subtotal: $${(tt/1.16).toFixed(2)}<br>IVA: $${(tt-(tt/1.16)).toFixed(2)}` : "";
-        document.getElementById('pos-ui').classList.add('hidden'); document.getElementById('ticket-view').classList.remove('hidden'); sync();
+        let f = document.getElementById('pos-fact').checked, tt=0, tc=0;
+        cart.forEach(c => { tt+=c.total; tc+=c.cost; db.inv.find(x=>x.id==c.id).stock -= c.q; });
+        db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'VENTA', detalle: cart.map(c=>c.nom).join(', '), total: tt, gain: tt-tc, facturado: f, iva: f?tt-(tt/1.16):0 });
+        resetSale(); sync(); alert("Venta realizada");
     }
-    function resetSale() { cart = []; renderCart(); document.getElementById('pos-ui').classList.remove('hidden'); document.getElementById('ticket-view').classList.add('hidden'); }
-    function downloadTicket() { html2canvas(document.querySelector("#ticket-wrap")).then(canvas => { let a = document.createElement('a'); a.download = 'ticket.png'; a.href = canvas.toDataURL(); a.click(); }); }
+    function resetSale() { cart=[]; renderCart(); }
 
-    // --- REPORTE ---
-    function renderRep() {
-        let g = 0, iF = 0, iC = 0, h = "";
-        [...db.mov].reverse().forEach(m => {
-            if(m.tipo === 'VENTA') { g += (m.gain || 0); if(m.facturado) iC += (m.iva || 0); }
-            if(m.tipo === 'COMPRA' && m.facturado) iF += (m.iva || 0);
-            h += `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.detalle||m.desc}</td><td>$${m.total.toFixed(2)}</td><td>${m.facturado?'SÍ':'NO'}</td></tr>`;
-        });
-        document.getElementById('rep-gain').innerText = `$${g.toFixed(2)}`;
-        document.getElementById('rep-iva-bal').innerText = `$${(iF-iC).toFixed(2)}`;
-        document.getElementById('rep-iva-bal').style.color = (iF-iC) >= 0 ? 'var(--accent)' : '#c0392b';
-        document.getElementById('rep-iva-detail').innerHTML = `Favor: $${iF.toFixed(2)} | Pagar: $${iC.toFixed(2)}`;
-        document.getElementById('rep-list').innerHTML = h;
-    }
-
-    // --- CONFIG ---
     function saveSettings() {
         db.cfg.pub = parseFloat(document.getElementById('cfg-pub').value);
         db.cfg.com = parseFloat(document.getElementById('cfg-com').value);
         db.cfg.m6 = parseFloat(document.getElementById('cfg-m6').value);
         db.cfg.m12 = parseFloat(document.getElementById('cfg-m12').value);
         db.cfg.m24 = parseFloat(document.getElementById('cfg-m24').value);
-        sync(); alert("Guardado.");
+        sync();
     }
-    function saveTheme() { db.cfg.colorP = document.getElementById('cfg-color-p').value; db.cfg.colorBG = document.getElementById('cfg-color-bg').value; sync(); }
     function applyTheme() {
-        const r = document.querySelector(':root'); r.style.setProperty('--primary', db.cfg.colorP); r.style.setProperty('--bg', db.cfg.colorBG);
+        const r = document.querySelector(':root'); r.style.setProperty('--primary', db.cfg.colorP);
         document.getElementById('cfg-pub').value = db.cfg.pub; document.getElementById('cfg-com').value = db.cfg.com;
         document.getElementById('cfg-m6').value = db.cfg.m6; document.getElementById('cfg-m12').value = db.cfg.m12; document.getElementById('cfg-m24').value = db.cfg.m24;
     }
