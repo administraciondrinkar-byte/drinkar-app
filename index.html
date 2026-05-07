@@ -55,6 +55,8 @@
 
         #ticket-wrap { background: white; color: black; padding: 20px; width: 300px; margin: 20px auto; font-family: monospace; }
         #ticket-wrap * { color: black !important; }
+        .ticket-table th { border-bottom: 1px dashed black; padding-bottom: 5px; }
+        .ticket-table td { border-bottom: none; padding: 2px 0; }
     </style>
 </head>
 <body>
@@ -132,13 +134,13 @@
 
     <div id="view-inv" class="view hidden">
         <div class="card">
-            <h3>Registro de Producto</h3>
+            <h3>Registro / Edición de Producto</h3>
             <label>Nombre</label><input type="text" id="inv-nom">
             <div class="flex">
                 <div><label>Costo Neto</label><input type="number" id="inv-cost"></div>
                 <div><label>Stock Inicial</label><input type="number" id="inv-qty" value="0"></div>
             </div>
-            <button class="btn btn-primary" onclick="addToInv()">Guardar Producto</button>
+            <button id="btn-save-inv" class="btn btn-primary" onclick="addToInv()">Guardar Producto</button>
         </div>
         
         <button class="btn btn-info" onclick="printInvReport()">🖨️ Generar Reporte de Inventario</button>
@@ -191,19 +193,38 @@
             <div class="card">
                 <div id="cart-list"></div>
                 <label class="fancy-checkbox" style="margin-top:15px;"><input type="checkbox" id="pos-fact"><span>📑 Venta Facturada</span></label>
+                <label class="fancy-checkbox"><input type="checkbox" id="pos-show-iva"><span>🧾 Mostrar Desglose de IVA en Ticket</span></label>
                 <h2 id="cart-total" style="text-align:right; color:var(--accent)">$0.00</h2>
-                <button class="btn btn-success" onclick="finalizeSale()">Cobrar</button>
+                <button class="btn btn-success" onclick="finalizeSale()">Cobrar y Generar Ticket</button>
             </div>
         </div>
+        
         <div id="ticket-view" class="hidden">
             <div id="ticket-wrap">
-                <center><h2>DRINKAR</h2><p id="t-fecha"></p></center>
-                <table style="width:100%"><tbody id="t-items"></tbody></table>
-                <div id="t-desglose" style="text-align:right; font-size:10px;"></div>
-                <h3 id="t-total-final" style="text-align:right"></h3>
+                <center>
+                    <h2>DRINKAR</h2>
+                    <p style="font-size: 11px;">Comprobante de Venta<br><span id="t-fecha"></span></p>
+                </center>
+                <div style="border-bottom: 1px dashed black; margin-bottom:10px;"></div>
+                <table class="ticket-table" style="width:100%; font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left; width:15%">Cant</th>
+                            <th style="text-align:left; width:45%">Concepto</th>
+                            <th style="text-align:right; width:20%">P.U.</th>
+                            <th style="text-align:right; width:20%">Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody id="t-items"></tbody>
+                </table>
+                <div style="border-bottom: 1px dashed black; margin-top:10px; margin-bottom:10px;"></div>
+                <div id="t-desglose" style="text-align:right; font-size:11px; margin-bottom: 10px;"></div>
+                <h3 id="t-total-final" style="text-align:right; margin: 0;"></h3>
+                <br>
+                <center><p style="font-size:10px;">¡Gracias por su preferencia!</p></center>
             </div>
-            <button class="btn btn-primary" onclick="downloadTicket()">Descargar Imagen</button>
-            <button class="btn btn-outline" onclick="resetSale()">Nueva Venta</button>
+            <button class="btn btn-primary" onclick="downloadTicket()">⬇️ Descargar Ticket</button>
+            <button class="btn btn-outline" onclick="resetSale()">🔄 Nueva Venta</button>
         </div>
     </div>
 
@@ -251,7 +272,7 @@
             
             <div style="overflow-x:auto;">
                 <table>
-                    <thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Total</th></tr></thead>
+                    <thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Total</th><th>Acciones</th></tr></thead>
                     <tbody id="rep-list"></tbody>
                 </table>
             </div>
@@ -320,6 +341,7 @@
     let db = defaultDB;
     let cart = [];
     let quoteCart = [];
+    let editingInvId = null; // Variable para saber si estamos editando un producto
 
     dbRef.on('value', (snap) => {
         db = snap.val() || defaultDB;
@@ -329,7 +351,7 @@
         if(!db.clients) db.clients = [];
         if(!db.expenses) db.expenses = [];
         if(!db.sim) db.sim = [];
-        if(!db.archives) db.archives = []; // Prevención de arreglo vacío para archivos
+        if(!db.archives) db.archives = [];
         
         if(!db.cfg) db.cfg = defaultDB.cfg;
         if(!db.cfg.colorCard) db.cfg.colorCard = '#151515';
@@ -414,17 +436,45 @@
         document.getElementById('buy-prod').innerHTML = ops; document.getElementById('pos-prod').innerHTML = ops;
     }
 
+    // Funciones para EDITAR / BORRAR Movimientos
+    function editMov(index) {
+        let m = db.mov[index];
+        let newDetalle = prompt("Modificar el detalle o concepto de la operación:", m.detalle);
+        if(newDetalle !== null && newDetalle.trim() !== "") m.detalle = newDetalle;
+
+        let newTotal = prompt("Modificar el Total ($):", m.total);
+        if(newTotal !== null && !isNaN(parseFloat(newTotal))) {
+            m.total = parseFloat(newTotal);
+            if(m.facturado) m.iva = m.total - (m.total/1.16);
+        }
+        sync();
+    }
+
+    function deleteMov(index) {
+        if(confirm("¿Estás seguro de que quieres eliminar este movimiento del historial?")) {
+            db.mov.splice(index, 1);
+            sync();
+        }
+    }
+
     function renderRep() {
         let g = 0, iF = 0, iC = 0, h = "";
-        db.mov.forEach(m => {
+        db.mov.forEach((m, index) => {
             if(m.tipo === 'VENTA') { g += (m.gain || 0); if(m.facturado) iC += (m.iva || 0); }
             if(m.tipo === 'COMPRA' && m.facturado) iF += (m.iva || 0);
-            h = `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.detalle}</td><td>$${m.total.toFixed(2)}</td></tr>` + h;
+            
+            let actionButtons = `
+                <button onclick="editMov(${index})" style="background:none;border:none;cursor:pointer;font-size:14px;" title="Editar">✏️</button>
+                <button onclick="deleteMov(${index})" style="background:none;border:none;cursor:pointer;font-size:14px;color:red;" title="Eliminar">🗑️</button>
+            `;
+            
+            h = `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.detalle}</td><td>$${m.total.toFixed(2)}</td><td style="text-align:center">${actionButtons}</td></tr>` + h;
         });
         db.expenses.forEach(e => {
             g -= e.total;
             if(e.fact) iF += e.iva;
-            h = `<tr><td>${e.fecha}</td><td>GASTO</td><td>${e.desc}</td><td>$${e.total.toFixed(2)}</td></tr>` + h;
+            // A los gastos por ahora no les ponemos edición inline en esta tabla para no complicar, pero se restan de la utilidad
+            h = `<tr><td>${e.fecha}</td><td>GASTO</td><td>${e.desc}</td><td>$${e.total.toFixed(2)}</td><td style="text-align:center">-</td></tr>` + h;
         });
         document.getElementById('rep-gain').innerText = `$${g.toFixed(2)}`;
         document.getElementById('rep-iva-bal').innerText = `$${(iF-iC).toFixed(2)}`;
@@ -432,7 +482,6 @@
         document.getElementById('rep-list').innerHTML = h;
     }
     
-    // Función para archivar
     function archiveCurrentMonth() {
         if(db.mov.length === 0 && db.expenses.length === 0) {
             alert("No hay movimientos para archivar.");
@@ -441,21 +490,13 @@
         let monthName = prompt("Escribe el nombre del archivo para guardarlo (Ej. Marzo 2024):");
         if(!monthName) return;
         
-        let archive = {
-            id: Date.now(),
-            name: monthName,
-            mov: [...db.mov],
-            expenses: [...db.expenses]
-        };
-        
+        let archive = { id: Date.now(), name: monthName, mov: [...db.mov], expenses: [...db.expenses] };
         db.archives.push(archive);
-        db.mov = [];
-        db.expenses = [];
+        db.mov = []; db.expenses = [];
         sync();
         alert("¡Reporte guardado con éxito! Se ha limpiado el historial actual para que inicies un nuevo periodo.");
     }
     
-    // Función para mostrar los archivos guardados
     function renderArchives() {
         let list = document.getElementById('archive-list');
         if(!db.archives || db.archives.length === 0) {
@@ -463,23 +504,19 @@
             return;
         }
         list.innerHTML = [...db.archives].reverse().map((a, i) => {
-            let idx = db.archives.length - 1 - i; // Índice real invertido
-            let numMovs = (a.mov ? a.mov.length : 0);
-            let numExp = (a.expenses ? a.expenses.length : 0);
+            let idx = db.archives.length - 1 - i;
             return `
             <div class="flex" style="background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; margin-bottom:8px; align-items:center; border-left:3px solid var(--primary);">
                 <div style="flex:2;">
                     <b style="font-size:14px">${a.name}</b><br>
-                    <small style="color:var(--text-muted)">${numMovs} Movimientos | ${numExp} Gastos</small>
+                    <small style="color:var(--text-muted)">${a.mov?a.mov.length:0} Movimientos | ${a.expenses?a.expenses.length:0} Gastos</small>
                 </div>
                 <button onclick="downloadArchiveCSV(${idx})" class="btn-info" style="width:auto; padding:8px 12px; font-size:11px; margin:0;">📥 CSV</button>
                 <button onclick="deleteArchive(${idx})" class="btn-danger" style="width:auto; padding:8px 12px; font-size:11px; margin:0;">🗑️</button>
-            </div>
-            `;
+            </div>`;
         }).join('');
     }
     
-    // Descargar CSV de un mes archivado
     function downloadArchiveCSV(index) {
         let a = db.archives[index];
         let csv = "Fecha,Tipo,Detalle,Total,Facturado,IVA\n";
@@ -488,11 +525,9 @@
         downloadCSV(csv, `Reporte_${a.name.replace(/\s+/g, '_')}_DrinKar.csv`);
     }
 
-    // Borrar archivo
     function deleteArchive(index) {
-        if(confirm("¿Estás seguro de que deseas borrar este archivo histórico? Esta acción no se puede deshacer.")) {
-            db.archives.splice(index, 1);
-            sync();
+        if(confirm("¿Estás seguro de que deseas borrar este archivo histórico?")) {
+            db.archives.splice(index, 1); sync();
         }
     }
 
@@ -556,14 +591,44 @@
     }
 
     // --- INVENTARIO ---
+    
+    // Función para cargar un producto en los inputs y prepararlo para edición
+    function loadEditInv(id) {
+        let p = db.inv.find(x => x.id === id);
+        if(!p) return;
+        document.getElementById('inv-nom').value = p.nom;
+        document.getElementById('inv-cost').value = p.cost;
+        document.getElementById('inv-qty').value = p.stock;
+        editingInvId = id;
+        document.getElementById('btn-save-inv').innerText = "Actualizar Producto";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
     function addToInv() {
         let n = document.getElementById('inv-nom').value, 
             c = parseFloat(document.getElementById('inv-cost').value), 
             q = parseInt(document.getElementById('inv-qty').value) || 0; 
         if(!n || isNaN(c)) return;
-        db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
+        
+        if (editingInvId) {
+            // Modo Edición
+            let p = db.inv.find(x => x.id === editingInvId);
+            if(p) {
+                p.nom = n;
+                p.cost = c;
+                p.stock = q;
+            }
+            editingInvId = null;
+            document.getElementById('btn-save-inv').innerText = "Guardar Producto";
+        } else {
+            // Modo Nuevo Producto
+            db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
+        }
+        
         sync(); 
         document.getElementById('inv-nom').value="";
+        document.getElementById('inv-cost').value="";
+        document.getElementById('inv-qty').value="0";
     }
     
     function renderInv() {
@@ -590,7 +655,10 @@
                     <div class="price-tag"><small>24+</small><b>$${p24}</b></div>
                 </div>
                 
-                <button onclick="db.inv.splice(${i},1);sync()" class="btn-danger" style="padding:8px;font-size:11px;width:auto;margin-top:15px">🗑️ Eliminar</button>
+                <div class="flex" style="margin-top:15px;">
+                    <button onclick="loadEditInv(${p.id})" class="btn-info" style="padding:8px;font-size:11px;">✏️ Editar</button>
+                    <button onclick="db.inv.splice(${i},1);sync()" class="btn-danger" style="padding:8px;font-size:11px;">🗑️ Eliminar</button>
+                </div>
             </div>`;
         }).join('');
     }
@@ -622,18 +690,71 @@
         cart.push({ id: p.id, nom: p.nom, q, pr, total: pr*q, cost: p.cost*q });
         renderCart();
     }
+    
     function renderCart() {
         let t = 0; document.getElementById('cart-list').innerHTML = cart.map(c => { t+=c.total; return `<div>${c.q} x ${c.nom} = $${c.total.toFixed(2)}</div>` }).join('');
         document.getElementById('cart-total').innerText = `$${t.toFixed(2)}`;
     }
+    
     function finalizeSale() {
         if(!cart.length) return;
-        let f = document.getElementById('pos-fact').checked, tt=0, tc=0;
-        cart.forEach(c => { tt+=c.total; tc+=c.cost; db.inv.find(x=>x.id==c.id).stock -= c.q; });
+        
+        let f = document.getElementById('pos-fact').checked;
+        let showIva = document.getElementById('pos-show-iva').checked;
+        let tt = 0, tc = 0;
+        let ticketItemsHTML = "";
+        
+        cart.forEach(c => { 
+            tt += c.total; 
+            tc += c.cost; 
+            let p = db.inv.find(x=>x.id==c.id);
+            if(p) p.stock -= c.q; 
+            
+            ticketItemsHTML += `
+                <tr>
+                    <td style="text-align:left">${c.q}</td>
+                    <td style="text-align:left">${c.nom}</td>
+                    <td style="text-align:right">$${c.pr.toFixed(2)}</td>
+                    <td style="text-align:right; font-weight:bold">$${c.total.toFixed(2)}</td>
+                </tr>`;
+        });
+        
         db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'VENTA', detalle: cart.map(c=>c.nom).join(', '), total: tt, gain: tt-tc, facturado: f, iva: f?tt-(tt/1.16):0 });
-        resetSale(); sync(); alert("Venta realizada");
+        
+        // Generar Ticket Visual
+        document.getElementById('t-fecha').innerText = new Date().toLocaleString();
+        document.getElementById('t-items').innerHTML = ticketItemsHTML;
+        document.getElementById('t-total-final').innerText = `TOTAL: $${tt.toFixed(2)}`;
+        
+        if (showIva) {
+            let sub = tt / 1.16;
+            let iva = tt - sub;
+            document.getElementById('t-desglose').innerHTML = `Subtotal: $${sub.toFixed(2)}<br>IVA (16%): $${iva.toFixed(2)}`;
+        } else {
+            document.getElementById('t-desglose').innerHTML = "";
+        }
+        
+        sync(); 
+        document.getElementById('pos-ui').classList.add('hidden');
+        document.getElementById('ticket-view').classList.remove('hidden');
     }
-    function resetSale() { cart=[]; renderCart(); }
+    
+    function downloadTicket() {
+        let wrap = document.getElementById('ticket-wrap');
+        html2canvas(wrap).then(canvas => {
+            let link = document.createElement('a');
+            link.download = 'Ticket_Venta_DrinKar.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+    
+    function resetSale() { 
+        cart=[]; 
+        renderCart(); 
+        document.getElementById('pos-ui').classList.remove('hidden');
+        document.getElementById('ticket-view').classList.add('hidden');
+    }
 
     // --- CONFIGURACIÓN Y TEMAS ---
     function saveSettings() {
