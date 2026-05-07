@@ -246,12 +246,20 @@
 
         <div class="card">
             <h3>Historial de Movimientos</h3>
+            
+            <button class="btn btn-outline" style="border-color:var(--accent); color:var(--accent)" onclick="archiveCurrentMonth()">📦 Cerrar Mes (Archivar y Limpiar)</button>
+            
             <div style="overflow-x:auto;">
                 <table>
                     <thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Total</th></tr></thead>
                     <tbody id="rep-list"></tbody>
                 </table>
             </div>
+        </div>
+
+        <div class="card">
+            <h3>Archivos Históricos</h3>
+            <div id="archive-list"></div>
         </div>
     </div>
 
@@ -306,7 +314,7 @@
     const dbRef = firebase.database().ref('drinkar_cloud_v48');
 
     const defaultDB = {
-        inv: [], mov: [], sim: [], clients: [], expenses: [],
+        inv: [], mov: [], sim: [], clients: [], expenses: [], archives: [],
         cfg: { pub: 15, com: 13.5, m6: 12, m12: 10, m24: 8, colorP: '#630d16', colorBG: '#0a0a0a', colorCard: '#151515', colorText: '#f8f9fa' }
     };
     let db = defaultDB;
@@ -316,14 +324,13 @@
     dbRef.on('value', (snap) => {
         db = snap.val() || defaultDB;
         
-        // PREVENCIÓN DE ARREGLOS VACÍOS (AQUÍ ESTABA EL BUG QUE CONGELABA EL GUARDADO)
         if(!db.inv) db.inv = [];
         if(!db.mov) db.mov = [];
         if(!db.clients) db.clients = [];
         if(!db.expenses) db.expenses = [];
         if(!db.sim) db.sim = [];
+        if(!db.archives) db.archives = []; // Prevención de arreglo vacío para archivos
         
-        // Prevención si son bases de datos antiguas que no tenían estos colores
         if(!db.cfg) db.cfg = defaultDB.cfg;
         if(!db.cfg.colorCard) db.cfg.colorCard = '#151515';
         if(!db.cfg.colorText) db.cfg.colorText = '#f8f9fa';
@@ -400,22 +407,20 @@
             <tr><td>${e.fecha}</td><td>${e.desc}</td><td>$${e.total.toFixed(2)}</td><td>$${e.iva.toFixed(2)}</td></tr>`).join('');
     }
 
-    // --- REPORTES Y DESCARGAS ---
+    // --- REPORTES Y ARCHIVOS HISTÓRICOS ---
     function refreshUI() {
-        renderInv(); renderSim(); renderRep(); renderClients(); renderExpenses();
+        renderInv(); renderSim(); renderRep(); renderClients(); renderExpenses(); renderArchives();
         let ops = db.inv.map(p => `<option value="${p.id}">${p.nom} (${p.stock})</option>`).join('');
         document.getElementById('buy-prod').innerHTML = ops; document.getElementById('pos-prod').innerHTML = ops;
     }
 
     function renderRep() {
         let g = 0, iF = 0, iC = 0, h = "";
-        // Ventas y Compras
         db.mov.forEach(m => {
             if(m.tipo === 'VENTA') { g += (m.gain || 0); if(m.facturado) iC += (m.iva || 0); }
             if(m.tipo === 'COMPRA' && m.facturado) iF += (m.iva || 0);
             h = `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.detalle}</td><td>$${m.total.toFixed(2)}</td></tr>` + h;
         });
-        // Restar Gastos de utilidad y sumar IVA a favor si facturan
         db.expenses.forEach(e => {
             g -= e.total;
             if(e.fact) iF += e.iva;
@@ -425,6 +430,70 @@
         document.getElementById('rep-iva-bal').innerText = `$${(iF-iC).toFixed(2)}`;
         document.getElementById('rep-iva-bal').style.color = (iF-iC) >= 0 ? 'var(--accent)' : '#c0392b';
         document.getElementById('rep-list').innerHTML = h;
+    }
+    
+    // Función para archivar
+    function archiveCurrentMonth() {
+        if(db.mov.length === 0 && db.expenses.length === 0) {
+            alert("No hay movimientos para archivar.");
+            return;
+        }
+        let monthName = prompt("Escribe el nombre del archivo para guardarlo (Ej. Marzo 2024):");
+        if(!monthName) return;
+        
+        let archive = {
+            id: Date.now(),
+            name: monthName,
+            mov: [...db.mov],
+            expenses: [...db.expenses]
+        };
+        
+        db.archives.push(archive);
+        db.mov = [];
+        db.expenses = [];
+        sync();
+        alert("¡Reporte guardado con éxito! Se ha limpiado el historial actual para que inicies un nuevo periodo.");
+    }
+    
+    // Función para mostrar los archivos guardados
+    function renderArchives() {
+        let list = document.getElementById('archive-list');
+        if(!db.archives || db.archives.length === 0) {
+            list.innerHTML = "<p style='color:var(--text-muted); font-size:12px'>No hay meses archivados todavía.</p>";
+            return;
+        }
+        list.innerHTML = [...db.archives].reverse().map((a, i) => {
+            let idx = db.archives.length - 1 - i; // Índice real invertido
+            let numMovs = (a.mov ? a.mov.length : 0);
+            let numExp = (a.expenses ? a.expenses.length : 0);
+            return `
+            <div class="flex" style="background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; margin-bottom:8px; align-items:center; border-left:3px solid var(--primary);">
+                <div style="flex:2;">
+                    <b style="font-size:14px">${a.name}</b><br>
+                    <small style="color:var(--text-muted)">${numMovs} Movimientos | ${numExp} Gastos</small>
+                </div>
+                <button onclick="downloadArchiveCSV(${idx})" class="btn-info" style="width:auto; padding:8px 12px; font-size:11px; margin:0;">📥 CSV</button>
+                <button onclick="deleteArchive(${idx})" class="btn-danger" style="width:auto; padding:8px 12px; font-size:11px; margin:0;">🗑️</button>
+            </div>
+            `;
+        }).join('');
+    }
+    
+    // Descargar CSV de un mes archivado
+    function downloadArchiveCSV(index) {
+        let a = db.archives[index];
+        let csv = "Fecha,Tipo,Detalle,Total,Facturado,IVA\n";
+        if(a.mov) a.mov.forEach(m => csv += `${m.fecha},${m.tipo},"${m.detalle}",${m.total},${m.facturado?'SI':'NO'},${m.iva.toFixed(2)}\n`);
+        if(a.expenses) a.expenses.forEach(e => csv += `${e.fecha},GASTO,"${e.desc}",${e.total},${e.fact?'SI':'NO'},${e.iva.toFixed(2)}\n`);
+        downloadCSV(csv, `Reporte_${a.name.replace(/\s+/g, '_')}_DrinKar.csv`);
+    }
+
+    // Borrar archivo
+    function deleteArchive(index) {
+        if(confirm("¿Estás seguro de que deseas borrar este archivo histórico? Esta acción no se puede deshacer.")) {
+            db.archives.splice(index, 1);
+            sync();
+        }
     }
 
     function downloadFullReport() {
@@ -490,14 +559,13 @@
     function addToInv() {
         let n = document.getElementById('inv-nom').value, 
             c = parseFloat(document.getElementById('inv-cost').value), 
-            q = parseInt(document.getElementById('inv-qty').value) || 0; // Agregado fallback por si dejan el input vacío
+            q = parseInt(document.getElementById('inv-qty').value) || 0; 
         if(!n || isNaN(c)) return;
         db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
         sync(); 
         document.getElementById('inv-nom').value="";
     }
     
-    // RENDER INVENTARIO (CON PRECIOS CALCULADOS RESTAURADOS)
     function renderInv() {
         document.getElementById('inv-render').innerHTML = db.inv.map((p, i) => {
             let pPub = (p.cost * (1 + db.cfg.pub/100)).toFixed(2);
