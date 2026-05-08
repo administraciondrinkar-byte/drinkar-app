@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinKar Suite V4.8 - Enterprise Elite Plus</title>
+    <title>DrinKar Suite V4.9 - Enterprise Elite Plus</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -68,7 +68,7 @@
 
 <div class="header">
     <h1 id="brand-name">DRIN<span style="color:var(--primary)">KAR</span></h1>
-    <small style="color:var(--text-muted)">V4.8 ENTERPRISE ELITE PLUS</small>
+    <small style="color:var(--text-muted)">V4.9 ENTERPRISE ELITE PLUS</small>
 </div>
 
 <div class="nav-bar">
@@ -255,9 +255,24 @@
     </div>
 
     <div id="view-rep" class="view hidden">
-        <div class="flex">
-            <div class="card"><label>Utilidad Neta</label><h2 id="rep-gain" style="color:var(--accent)">$0.00</h2></div>
-            <div class="card"><label>Balance IVA</label><h2 id="rep-iva-bal">$0.00</h2></div>
+        
+        <div class="price-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
+            <div class="card" style="margin-bottom:0; padding:15px;">
+                <label>Ganancia Bruta</label>
+                <h2 id="rep-bruta" style="margin:5px 0;">$0.00</h2>
+            </div>
+            <div class="card" style="margin-bottom:0; padding:15px;">
+                <label>Balance IVA</label>
+                <h2 id="rep-iva-bal" style="margin:5px 0;">$0.00</h2>
+            </div>
+            <div class="card" style="margin-bottom:0; padding:15px;">
+                <label>ISR Retenido (2%)</label>
+                <h2 id="rep-isr" style="margin:5px 0; color:#c0392b;">-$0.00</h2>
+            </div>
+            <div class="card" style="margin-bottom:0; padding:15px; border-color:var(--accent); border-width:2px;">
+                <label>Ganancia Neta (Caja)</label>
+                <h2 id="rep-neta" style="margin:5px 0; color:var(--accent);">$0.00</h2>
+            </div>
         </div>
         
         <div class="flex" style="margin-bottom: 20px;">
@@ -341,7 +356,7 @@
     let db = defaultDB;
     let cart = [];
     let quoteCart = [];
-    let editingInvId = null; // Variable para saber si estamos editando un producto
+    let editingInvId = null;
 
     dbRef.on('value', (snap) => {
         db = snap.val() || defaultDB;
@@ -382,7 +397,6 @@
             <div class="price-tag"><small>24+</small><b>$${calc(db.cfg.m24)}</b></div>`;
     }
 
-    // --- SIMULADOR ---
     function addToSim() {
         let val = parseFloat(document.getElementById('sim-net').value);
         if(!val) return;
@@ -401,7 +415,6 @@
         document.getElementById('sim-totals').innerHTML = `<b>TOTAL NETO: $${tn.toFixed(2)}</b><br><small>Sub: $${ts.toFixed(2)} | IVA: $${ti.toFixed(2)}</small>`;
     }
 
-    // --- CLIENTES ---
     function addClient() {
         let n = document.getElementById('cli-nom').value;
         if(!n) return;
@@ -414,7 +427,6 @@
             <td><button onclick="db.clients.splice(${i},1);sync()" style="color:red;background:none;border:none;cursor:pointer;">X</button></td></tr>`).join('');
     }
 
-    // --- GASTOS ---
     function addExpense() {
         let d = document.getElementById('exp-desc').value;
         let t = parseFloat(document.getElementById('exp-total').value);
@@ -429,14 +441,12 @@
             <tr><td>${e.fecha}</td><td>${e.desc}</td><td>$${e.total.toFixed(2)}</td><td>$${e.iva.toFixed(2)}</td></tr>`).join('');
     }
 
-    // --- REPORTES Y ARCHIVOS HISTÓRICOS ---
     function refreshUI() {
         renderInv(); renderSim(); renderRep(); renderClients(); renderExpenses(); renderArchives();
         let ops = db.inv.map(p => `<option value="${p.id}">${p.nom} (${p.stock})</option>`).join('');
         document.getElementById('buy-prod').innerHTML = ops; document.getElementById('pos-prod').innerHTML = ops;
     }
 
-    // Funciones para EDITAR / BORRAR Movimientos
     function editMov(index) {
         let m = db.mov[index];
         let newDetalle = prompt("Modificar el detalle o concepto de la operación:", m.detalle);
@@ -452,41 +462,64 @@
 
     function deleteMov(index) {
         if(confirm("¿Estás seguro de que quieres eliminar este movimiento del historial?")) {
-            db.mov.splice(index, 1);
-            sync();
+            db.mov.splice(index, 1); sync();
         }
     }
 
+    // --- CÁLCULO DE REPORTE Y FLUJO DE CAJA ---
     function renderRep() {
-        let g = 0, iF = 0, iC = 0, h = "";
+        let gananciaBruta = 0, iF = 0, iC = 0, subtotalFacturadoVentas = 0, h = "";
+        
         db.mov.forEach((m, index) => {
-            if(m.tipo === 'VENTA') { g += (m.gain || 0); if(m.facturado) iC += (m.iva || 0); }
-            if(m.tipo === 'COMPRA' && m.facturado) iF += (m.iva || 0);
+            if(m.tipo === 'VENTA') { 
+                gananciaBruta += (m.gain || 0); 
+                if(m.facturado) {
+                    iC += (m.iva || 0); 
+                    subtotalFacturadoVentas += (m.total / 1.16);
+                }
+            }
+            if(m.tipo === 'COMPRA' && m.facturado) {
+                iF += (m.iva || 0);
+            }
             
             let actionButtons = `
                 <button onclick="editMov(${index})" style="background:none;border:none;cursor:pointer;font-size:14px;" title="Editar">✏️</button>
                 <button onclick="deleteMov(${index})" style="background:none;border:none;cursor:pointer;font-size:14px;color:red;" title="Eliminar">🗑️</button>
             `;
-            
             h = `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.detalle}</td><td>$${m.total.toFixed(2)}</td><td style="text-align:center">${actionButtons}</td></tr>` + h;
         });
+        
         db.expenses.forEach(e => {
-            g -= e.total;
+            gananciaBruta -= e.total;
             if(e.fact) iF += e.iva;
-            // A los gastos por ahora no les ponemos edición inline en esta tabla para no complicar, pero se restan de la utilidad
             h = `<tr><td>${e.fecha}</td><td>GASTO</td><td>${e.desc}</td><td>$${e.total.toFixed(2)}</td><td style="text-align:center">-</td></tr>` + h;
         });
-        document.getElementById('rep-gain').innerText = `$${g.toFixed(2)}`;
-        document.getElementById('rep-iva-bal').innerText = `$${(iF-iC).toFixed(2)}`;
-        document.getElementById('rep-iva-bal').style.color = (iF-iC) >= 0 ? 'var(--accent)' : '#c0392b';
+
+        // Matemáticas de Impuestos y Flujo de Caja
+        let balanceIVA = iF - iC; 
+        let isr = subtotalFacturadoVentas * 0.02;
+        let gananciaNeta = gananciaBruta - isr;
+        
+        // Si el IVA es negativo (pagaste menos IVA del que cobraste, le debes al SAT), se resta de la utilidad
+        if (balanceIVA < 0) {
+            gananciaNeta += balanceIVA; // Como balanceIVA ya es negativo, al sumarlo se está restando
+        }
+
+        // Renderizar Tarjetas
+        document.getElementById('rep-bruta').innerText = `$${gananciaBruta.toFixed(2)}`;
+        
+        let colorIVA = balanceIVA >= 0 ? 'var(--accent)' : '#c0392b';
+        document.getElementById('rep-iva-bal').innerText = `$${balanceIVA.toFixed(2)}`;
+        document.getElementById('rep-iva-bal').style.color = colorIVA;
+        
+        document.getElementById('rep-isr').innerText = `-$${isr.toFixed(2)}`;
+        document.getElementById('rep-neta').innerText = `$${gananciaNeta.toFixed(2)}`;
+        
         document.getElementById('rep-list').innerHTML = h;
     }
     
     function archiveCurrentMonth() {
-        if(db.mov.length === 0 && db.expenses.length === 0) {
-            alert("No hay movimientos para archivar.");
-            return;
-        }
+        if(db.mov.length === 0 && db.expenses.length === 0) { alert("No hay movimientos para archivar."); return; }
         let monthName = prompt("Escribe el nombre del archivo para guardarlo (Ej. Marzo 2024):");
         if(!monthName) return;
         
@@ -500,8 +533,7 @@
     function renderArchives() {
         let list = document.getElementById('archive-list');
         if(!db.archives || db.archives.length === 0) {
-            list.innerHTML = "<p style='color:var(--text-muted); font-size:12px'>No hay meses archivados todavía.</p>";
-            return;
+            list.innerHTML = "<p style='color:var(--text-muted); font-size:12px'>No hay meses archivados todavía.</p>"; return;
         }
         list.innerHTML = [...db.archives].reverse().map((a, i) => {
             let idx = db.archives.length - 1 - i;
@@ -518,18 +550,13 @@
     }
     
     function downloadArchiveCSV(index) {
-        let a = db.archives[index];
-        let csv = "Fecha,Tipo,Detalle,Total,Facturado,IVA\n";
+        let a = db.archives[index]; let csv = "Fecha,Tipo,Detalle,Total,Facturado,IVA\n";
         if(a.mov) a.mov.forEach(m => csv += `${m.fecha},${m.tipo},"${m.detalle}",${m.total},${m.facturado?'SI':'NO'},${m.iva.toFixed(2)}\n`);
         if(a.expenses) a.expenses.forEach(e => csv += `${e.fecha},GASTO,"${e.desc}",${e.total},${e.fact?'SI':'NO'},${e.iva.toFixed(2)}\n`);
         downloadCSV(csv, `Reporte_${a.name.replace(/\s+/g, '_')}_DrinKar.csv`);
     }
 
-    function deleteArchive(index) {
-        if(confirm("¿Estás seguro de que deseas borrar este archivo histórico?")) {
-            db.archives.splice(index, 1); sync();
-        }
-    }
+    function deleteArchive(index) { if(confirm("¿Estás seguro de que deseas borrar este archivo histórico?")) { db.archives.splice(index, 1); sync(); } }
 
     function downloadFullReport() {
         let csv = "Fecha,Tipo,Detalle,Total,Facturado,IVA\n";
@@ -565,7 +592,6 @@
         link.click();
     }
 
-    // --- COTIZADOR ---
     function addToQuote() {
         let n = document.getElementById('quote-item-name').value;
         let c = parseFloat(document.getElementById('quote-item-net').value);
@@ -590,9 +616,6 @@
         w.document.close(); setTimeout(() => w.print(), 800);
     }
 
-    // --- INVENTARIO ---
-    
-    // Función para cargar un producto en los inputs y prepararlo para edición
     function loadEditInv(id) {
         let p = db.inv.find(x => x.id === id);
         if(!p) return;
@@ -611,17 +634,11 @@
         if(!n || isNaN(c)) return;
         
         if (editingInvId) {
-            // Modo Edición
             let p = db.inv.find(x => x.id === editingInvId);
-            if(p) {
-                p.nom = n;
-                p.cost = c;
-                p.stock = q;
-            }
+            if(p) { p.nom = n; p.cost = c; p.stock = q; }
             editingInvId = null;
             document.getElementById('btn-save-inv').innerText = "Guardar Producto";
         } else {
-            // Modo Nuevo Producto
             db.inv.push({ id: Date.now(), nom: n, cost: c, stock: q });
         }
         
@@ -674,7 +691,6 @@
         setTimeout(() => w.print(), 500);
     }
 
-    // --- COMPRAS Y VENTAS ---
     function executePurchase() {
         let id = document.getElementById('buy-prod').value, q = parseInt(document.getElementById('buy-qty').value), c = parseFloat(document.getElementById('buy-cost').value), f = document.getElementById('buy-fact').checked, p = db.inv.find(x => x.id == id);
         if(!p || isNaN(q)) return;
@@ -721,7 +737,6 @@
         
         db.mov.push({ fecha: new Date().toLocaleDateString(), tipo:'VENTA', detalle: cart.map(c=>c.nom).join(', '), total: tt, gain: tt-tc, facturado: f, iva: f?tt-(tt/1.16):0 });
         
-        // Generar Ticket Visual
         document.getElementById('t-fecha').innerText = new Date().toLocaleString();
         document.getElementById('t-items').innerHTML = ticketItemsHTML;
         document.getElementById('t-total-final').innerText = `TOTAL: $${tt.toFixed(2)}`;
@@ -756,7 +771,6 @@
         document.getElementById('ticket-view').classList.add('hidden');
     }
 
-    // --- CONFIGURACIÓN Y TEMAS ---
     function saveSettings() {
         db.cfg.pub = parseFloat(document.getElementById('cfg-pub').value);
         db.cfg.com = parseFloat(document.getElementById('cfg-com').value);
